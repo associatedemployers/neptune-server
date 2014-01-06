@@ -1,4 +1,4 @@
-/*
+/*******************************
 
 V0.1 (dev)
 
@@ -8,36 +8,46 @@ Node.js, Express.js, MongoDB
 
 Creation Date: 2014/01/03
 
-*/
+*******************************/
 
 var express = require('express'),
-//route vars
+
+/* Route Vars */
 api = express(),
 users = require('./routes/users'),
 employers = require('./routes/employers'),
 jobs = require('./routes/jobs');
-//end route vars
+/* END Route Vars */
 
-/* SSSSSSSSSSSSSSSSSSSSSSSSSS
-route controllers
-SSSSSSSSSSSSSSSSSSSSSSSSSS */
+
+/* XXXXXXXXXXXXXXXXXXXXXXXXXX
+Route Controllers
+XXXXXXXXXXXXXXXXXXXXXXXXXX */
 
 //jobs
 api.get('/jobs', auth.guest, jobs.fetchAll);
 api.get('/jobs/:id', auth.guest, jobs.fetchByID);
-
+api.post('/jobs', auth.employer, jobs.addJob);
+api.put('/jobs', auth.employer, employers.updateJob);
+api.delete('/jobs', auth.employer, jobs.deleteJob);
 
 //users
-api.get('/users', auth.admin, jobs.fetchAll);
-api.get('/users/:id', auth.admin, jobs.fetchByID);
+api.get('/users', auth.admin, users.fetchAll);
+api.get('/users/:id', auth.admin, users.fetchByID);
+api.post('/users', auth.guest, users.addUser);
+api.put('/users', auth.user, users.updateUser);
+api.delete('/users', auth.user, users.deleteUser);
 
 
 //employers
-api.get('/employers', auth.guest, jobs.fetchAll);
-api.get('/employers/:id', auth.guest, jobs.fetchByID);
+api.get('/employers', auth.guest, employers.fetchAll);
+api.get('/employers/:id', auth.guest, employers.fetchByID);
+api.post('/employers', auth.guest, employers.addEmployer);
+api.put('/employers', auth.employer, employers.updateEmployer);
+api.delete('/employers', auth.employer, jobs.deleteEmployer);
 
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
-end route controllers
+END Route Controllers
 XXXXXXXXXXXXXXXXXXXXXXXXXX */
 
 
@@ -59,6 +69,13 @@ var auth = {
 	},
 	guest: function (req, res, next) {
 		if (req.token !== token.guest) {
+			res.send('Please Send a Token with your request.');
+		} else {
+			next();
+		}
+	},
+	employer: function (req, res, next) {
+		if (req.token !== token.employer) {
 			res.send('Please Send a Token with your request.');
 		} else {
 			next();
