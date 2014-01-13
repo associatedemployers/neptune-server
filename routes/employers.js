@@ -1,5 +1,5 @@
 // Employers Route
-console.log("Loaded employers route");
+console.log("STARTUP: Loaded employers route.");
 
 var mongo = require('mongodb');
 
@@ -13,11 +13,11 @@ var Server = mongo.Server,
     BSON = mongo.BSONPure;
  
 var server = new Server('localhost', 27017, {auto_reconnect: true});
-db = new Db('aejobs', server);
+db = new Db('aejobs', server, {safe: true}, {strict: false});
 
 db.open(function(err, db) {
     if(!err) {
-        console.log("Connected to ' database");
+        console.log("Connected to database on employers route");
         db.collection('jobs', function(err, collection) {
             if (err) {
                 console.log(exception['1001_1']);
