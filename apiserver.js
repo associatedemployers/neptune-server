@@ -17,6 +17,7 @@ api = express(),
 users = require('./routes/users'),
 employers = require('./routes/employers'),
 jobs = require('./routes/jobs');
+login = require('./routes/login');
 token = require('./config/tokens');
 /* END Route Vars */
 
@@ -111,11 +112,12 @@ Route Controllers
 XXXXXXXXXXXXXXXXXXXXXXXXXX */
 
 //jobs
-api.get('/jobs', auth.get.guest, jobs.fetchAll);
-api.get('/jobs/:id', auth.get.guest, jobs.fetchByID);
+api.get('/jobs', auth.get.guest, jobs.fetchAll); //function complete
+api.get('/jobs/:id', auth.get.guest, jobs.fetchByID); //function complete
 /*api.post('/jobs', auth.employer, jobs.addJob);
 api.put('/jobs', auth.employer, employers.updateJob);
 api.delete('/jobs', auth.employer, jobs.deleteJob);*/
+api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured); //function complete
 
 //users
 api.get('/users', auth.get.admin, users.fetchAll);
@@ -125,13 +127,16 @@ api.put('/users', auth.user, users.updateUser);
 api.delete('/users', auth.user, users.deleteUser);*/
 
 //employers
-api.get('/employers', auth.get.guest, employers.fetchAll);
-api.get('/employers/:id', auth.get.guest, employers.fetchByID);
+api.get('/employers', auth.get.guest, employers.fetchAll); //function complete
+api.get('/employers/:id', auth.get.guest, employers.fetchByID); //function complete
 /*api.post('/employers', auth.guest, employers.addEmployer);
 api.put('/employers', auth.employer, employers.updateEmployer);
 api.delete('/employers', auth.employer, jobs.deleteEmployer);*/
+api.get('/featured/employers', auth.get.guest, employers.fetchFeatured); //function complete
 
 //login server
+api.post('/login', auth.post.guest, login.process);
+
 
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
 END Route Controllers

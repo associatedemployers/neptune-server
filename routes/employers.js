@@ -4,7 +4,7 @@ console.log("STARTUP: Loaded employers route.");
 var mongo = require('mongodb');
 
 var exception = {
-	'1000_1': "API ERROR 1000:1: Employers Collection Does Not Exist.",
+	'1000_2': "API ERROR 1000:2: Employers Collection Does Not Exist.",
 	'1001': "API ERROR 1001: Failed To Open DB."
 }
 
@@ -13,14 +13,14 @@ var Server = mongo.Server,
     BSON = mongo.BSONPure;
  
 var server = new Server('localhost', 27017, {auto_reconnect: true});
-db = new Db('aejobs', server, {safe: true}, {strict: false});
+db = new Db('ae', server, {safe: true}, {strict: false});
 
 db.open(function(err, db) {
     if(!err) {
-        console.log("Connected to database on employers route");
-        db.collection('jobs', function(err, collection) {
+        console.log("STARTUP: Connected to database on employers route.");
+        db.collection('employers', function(err, collection) {
             if (err) {
-                console.log(exception['1001_1']);
+                console.log(exception['1001_2']);
             }
         });
     } else {
@@ -28,10 +28,41 @@ db.open(function(err, db) {
 	}
 });
 
+exports.fetchFeatured = function(req, res) {
+	console.log("LOG: Opened employers fetchFeatured() function in employers route.");
+	 db.collection('employers', function(err, collection) {
+		collection.find({featured: true}).toArray(function(err, items) {
+            res.json(items);
+        });
+    });
+}
+
 exports.fetchAll = function(req, res) {
-	console.log("Opened jobs fetchAll() function in employers route.");	
+	console.log("LOG: Opened employers fetchAll() function in employers route.");
+	 db.collection('employers', function(err, collection) {
+		collection.find().toArray(function(err, items) {
+            res.json(items);
+        });
+    });
 }
 
 exports.fetchByID = function(req, res) {
-	console.log("Opened jobs fetchByID() function in employers route.");
+	var id = req.params.id;
+	console.log("LOG: Opened employers fetchByID() function in employers route.");
+	console.log("LOG: Opening connection to retrieve employer: " + id);
+	if(id.length !== 24) {
+		res.status(404).send("Not Found");
+		return;
+	}
+	db.collection('employers', function(err, collection) {
+		collection.findOne({'_id':new BSON.ObjectID(id)}, function(err, item) {
+			if(err) {
+				res.status(404).send("Not Found");
+				return;
+			} else if(item == null) {
+				res.status(404).send("Not Found");
+			}
+			res.json(item);
+		});
+	});
 }

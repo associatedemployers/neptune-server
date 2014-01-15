@@ -17,7 +17,7 @@ db = new Db('ae', server, {safe: true}, {strict: false});
 
 db.open(function(err, db) {
     if(!err) {
-        console.log("LOG: Connected to database on jobs route");
+        console.log("STARTUP: Connected to database on jobs route.");
         db.collection('jobs', function(err, collection) {
             if (err) {
                 console.log(exception['1001_2']);
@@ -27,6 +27,15 @@ db.open(function(err, db) {
 		console.log(exception['1001']);
 	}
 });
+
+exports.fetchFeatured = function(req, res) {
+	console.log("LOG: Opened jobs fetchFeatured() function in jobs route.");
+	 db.collection('jobs', function(err, collection) {
+		collection.find({featured: true}).toArray(function(err, items) {
+            res.json(items);
+        });
+    });
+}
 
 exports.fetchAll = function(req, res) {
 	console.log("LOG: Opened jobs fetchAll() function in jobs route.");
