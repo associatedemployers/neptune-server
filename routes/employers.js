@@ -32,7 +32,11 @@ exports.fetchFeatured = function(req, res) {
 	console.log("LOG: Opened employers fetchFeatured() function in employers route.");
 	 db.collection('employers', function(err, collection) {
 		collection.find({featured: true}).toArray(function(err, items) {
-            res.json(items);
+            if(req.query.callback !== null) {
+				res.jsonp(items);
+			} else {
+				res.json(items);
+			}
         });
     });
 }
@@ -41,7 +45,12 @@ exports.fetchAll = function(req, res) {
 	console.log("LOG: Opened employers fetchAll() function in employers route.");
 	 db.collection('employers', function(err, collection) {
 		collection.find().toArray(function(err, items) {
-            res.json(items);
+            if(req.query.callback !== null) {
+				res.jsonp(items);
+			} else {
+				res.json(items);
+			}
+			
         });
     });
 }
@@ -51,18 +60,35 @@ exports.fetchByID = function(req, res) {
 	console.log("LOG: Opened employers fetchByID() function in employers route.");
 	console.log("LOG: Opening connection to retrieve employer: " + id);
 	if(id.length !== 24) {
-		res.status(404).send("Not Found");
+		if(req.query.callback !== null) {
+			res.status(404).jsonp("Not Found");
+		} else {
+			res.status(404).json("Not Found");
+		}
 		return;
 	}
 	db.collection('employers', function(err, collection) {
 		collection.findOne({'_id':new BSON.ObjectID(id)}, function(err, item) {
 			if(err) {
-				res.status(404).send("Not Found");
+				if(req.query.callback !== null) {
+					res.status(404).jsonp("Not Found");
+				} else {
+					res.status(404).json("Not Found");
+				}
 				return;
 			} else if(item == null) {
-				res.status(404).send("Not Found");
+				if(req.query.callback !== null) {
+					res.status(404).jsonp("Not Found");
+				} else {
+					res.status(404).json("Not Found");
+				}
+			} else {
+				if(req.query.callback !== null) {
+					res.jsonp(item);
+				} else {
+					res.json(item);
+				}
 			}
-			res.json(item);
 		});
 	});
 }

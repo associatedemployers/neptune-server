@@ -29,11 +29,19 @@ exports.process = function(req, res) {
 		collection.findOne({email: req.body.email, password: atob(req.body.password)}, function(err, result) { //base64 decoding the password ~~ an extra layer of security just in case
 			if (err) {
 				console.log("LOG: Error occurred in login.process(): " + err);
-				res.status(500).send("API Server error in login.process");	
+				if(req.query.callback !== null) {
+					res.status(500).jsonp("API Server error in login.process");	
+				} else {
+					res.status(500).json("API Server error in login.process");	
+				}
 				return;
 			}
 			if(result) {
-				res.status(200).json(result); //sending back the result to the app with all user information.
+				if(req.query.callback !== null) {
+					res.status(200).jsonp(result); //sending back the result to the app with all user information.
+				} else {
+					res.status(200).json(result); //sending back the result to the app with all user information.
+				}
 				return;
 			}
 		});
@@ -46,10 +54,21 @@ exports.process = function(req, res) {
 				return;
 			}
 			if(result) {
-				res.status(200).json(result); //sending back the result to the app with all user information.
+				if(req.query.callback !== null) {
+					console.log("callback found");
+					res.status(200).jsonp(result); //sending back the result to the app with all user information.
+				} else {
+					console.log("no callback found.");
+					res.status(200).json(result); //sending back the result to the app with all user information.
+				}
 				return;
 			} else {
-				res.status(200).send("User not found.");	
+				if(req.query.callback !== null) {
+					res.status(200).jsonp("User not found.");	
+				} else {
+					res.status(200).json("User not found.");	
+				}
+				
 			}
 		});
 	});
