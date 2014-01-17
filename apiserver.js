@@ -16,8 +16,9 @@ var express = require('express'),
 api = express(),
 users = require('./routes/users'),
 employers = require('./routes/employers'),
-jobs = require('./routes/jobs');
-login = require('./routes/login');
+jobs = require('./routes/jobs'),
+login = require('./routes/login'),
+searchdb = require('./routes/searchdb'),
 token = require('./config/tokens');
 /* END Route Vars */
 
@@ -137,6 +138,8 @@ api.get('/featured/employers', auth.get.guest, employers.fetchFeatured); //funct
 //login server
 api.post('/login', auth.post.guest, login.process);
 
+//search server
+api.get('/search', auth.get.guest, searchdb.process);
 
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
 END Route Controllers
