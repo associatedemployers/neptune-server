@@ -37,6 +37,7 @@ exports.process = function(req, res) {
 				return;
 			}
 			if(result) {
+				result['type'] = "employer";
 				if(req.query.callback !== null) {
 					res.status(200).jsonp(result); //sending back the result to the app with all user information.
 				} else {
@@ -54,6 +55,7 @@ exports.process = function(req, res) {
 				return;
 			}
 			if(result) {
+				result['type'] = "user";
 				if(req.query.callback !== null) {
 					console.log("callback found");
 					res.status(200).jsonp(result); //sending back the result to the app with all user information.
@@ -61,7 +63,6 @@ exports.process = function(req, res) {
 					console.log("no callback found.");
 					res.status(200).json(result); //sending back the result to the app with all user information.
 				}
-				return;
 			} else {
 				if(req.query.callback !== null) {
 					res.status(200).jsonp("User not found.");	
@@ -72,4 +73,14 @@ exports.process = function(req, res) {
 			}
 		});
 	});
+}
+
+var sessionToken = {
+	create: function () {
+		
+	},
+	store: function () {
+		
+	}
+	
 }

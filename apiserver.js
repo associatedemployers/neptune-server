@@ -27,11 +27,11 @@ api.configure(function () {
 	api.use(express.json());
 	api.use(express.urlencoded());
 	api.use(function (req, res, next) {
-		res.setHeader('Access-Control-Allow-Origin', 'http://aejobs.org'); //allowed websites
+		res.setHeader('Access-Control-Allow-Origin', '*'); //allowed websites
 		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE'); //allowed request types
 		res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
     next();
-});
+	});
 });
 
 

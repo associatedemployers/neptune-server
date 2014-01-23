@@ -34,12 +34,12 @@ exports.process = function(req, res) {
 	db.collection('jobs', function(err, collection) { //connect to jobs collection
 		collection.find().toArray(function(err, items) { //press all jobs into an array
 			items.forEach(function(item) { //iterate over the items array
+				delete item['_id'];
 				var s = JSON.stringify(item); //convert each item in items to a string
-				var matched = false;
+				var matched = true;
 				sarray.forEach(function(qs) { //take the toArray converted query and iterate over it
-					var r = new RegExp(qs, "g"); //compose a regex object with the stringified query
-					if(r.test(s)) { //if regex finds the keyword in the item string,
-						matched = true; //set matched to true
+					if(s.search(qs) < 0) { //if regex finds the keyword in the item string,
+						matched = false; //set matched to false
 					}
 				});
 				if(matched) {
