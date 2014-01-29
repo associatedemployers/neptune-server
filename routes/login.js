@@ -51,18 +51,16 @@ exports.process = function(req, res) {
 	
 	db.collection('users', function(err, collection) {
 		collection.findOne({"login.email":req.body.email, "login.password": atob(req.body.password)}, function(err, result) { //repeating the lookup in the users collection just in case
-			if (err) {
+			if (err && con) {
 				console.log("LOG: Error occurred in login.process(): " + err);
 				res.status(500).send("API Server error in login.process: " + err);	
 				return;
 			}
-			if(result) {
+			if(result && con) {
 				result['type'] = "user";
 				if(req.query.callback !== null) {
-					console.log("callback found");
 					res.status(200).jsonp(result); //sending back the result to the app with all user information.
 				} else {
-					console.log("no callback found.");
 					res.status(200).json(result); //sending back the result to the app with all user information.
 				}
 			} else if(con) {
