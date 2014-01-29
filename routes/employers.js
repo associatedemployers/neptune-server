@@ -94,6 +94,7 @@ exports.fetchByID = function(req, res) {
 }
 
 exports.addEmployer = function(req, res, next) {
+	req.body.account_data.activated = false;
 	var account = req.body.account_data;
 	
 	if(!account) {
@@ -103,9 +104,6 @@ exports.addEmployer = function(req, res, next) {
 		});
 		return;
 	}
-	
-	delete account.profile.about;
-	delete account.tags;
 
 	db.collection('employerusers', function(err, collection) {
 		collection.findOne({'login.email': account.login.email}, function(err, result) {
@@ -134,7 +132,7 @@ exports.addEmployer = function(req, res, next) {
 					'error': 'Internal Error: ' + err
 				});
 			} else {
-				req.employerid = result._id;
+				req.body.employerid = result[0]._id;
 				next();
 			}
 		});
@@ -143,9 +141,9 @@ exports.addEmployer = function(req, res, next) {
 
 exports.addEmployerListing  = function(req, res) {
 	var account = req.body.account_data;
-	var related_id = req.employerid;
-	var listing = account;
 	
+	var related_id = req.body.employerid;
+	var listing = account;
 	//adding on to the listing object before injection
 	listing.employer_id = related_id;
 	listing.featured = false;

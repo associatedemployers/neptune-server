@@ -11,6 +11,7 @@ Creation Date: 2014/01/03
 *******************************/
 
 var express = require('express'),
+nodemailer = require('nodemailer'),
 
 /* Route Vars */
 api = express(),
@@ -19,6 +20,8 @@ employers = require('./routes/employers'),
 jobs = require('./routes/jobs'),
 login = require('./routes/login'),
 searchdb = require('./routes/searchdb'),
+
+mailtemplates = require('./config/mail.templates'),
 token = require('./config/tokens');
 /* END Route Vars */
 
@@ -38,7 +41,6 @@ function transformreq (req, res, next) {
 	req.body = req.query;
 	next();
 }
-
 
 //authorization controller
 var auth = {
