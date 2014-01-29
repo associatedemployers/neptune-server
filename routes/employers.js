@@ -92,3 +92,81 @@ exports.fetchByID = function(req, res) {
 		});
 	});
 }
+
+exports.addEmployer = function(req, res, next) {
+	var account = req.body.account_data;
+	
+	if(!account) {
+		res.send({
+			'created': false,
+			'error': "No data sent with request."
+		});
+		return;
+	}
+	
+	delete account.profile.about;
+	delete account.tags;
+
+	db.collection('employerusers', function(err, collection) {
+		collection.findOne({'login.email': account.login.email}, function(err, result) {
+			if(result) {
+				res.send({
+					'created': false,
+					'error': 'An account already exists with that email address.'
+				});
+				return;
+			}
+		});
+		collection.findOne({'name.company': account.name.company}, function(err, result) {
+			if(result) {
+				res.send({
+					'created': false,
+					'error': 'An account already exists with that company name.'
+				});
+				return;
+			}
+		});
+		
+		collection.insert(account, {safe:true}, function(err, result) {
+			if(err) {
+				res.send({
+					'created': false,
+					'error': 'Internal Error: ' + err
+				});
+			} else {
+				req.employerid = result._id;
+				next();
+			}
+		});
+	});
+}
+
+exports.addEmployerListing  = function(req, res) {
+	var account = req.body.account_data;
+	var related_id = req.employerid;
+	var listing = account;
+	
+	//adding on to the listing object before injection
+	listing.employer_id = related_id;
+	listing.featured = false;
+	
+	//make sure to delete things you don't want sent with a simple get req.
+	delete listing.name.first;
+	delete listing.name.last;
+	delete listing.login;
+	
+	db.collection('employers', function(err, collection) {
+		collection.insert(listing, {safe:true}, function(err, result) {
+			if(err) {
+				res.send({
+					'created': false,
+					'error': 'Internal Error: ' + err
+				});
+			} else {
+				res.send({
+					'created':true
+				});
+			}
+		});
+	});
+}

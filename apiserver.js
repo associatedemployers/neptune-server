@@ -30,9 +30,14 @@ api.configure(function () {
 		res.setHeader('Access-Control-Allow-Origin', '*'); //allowed websites
 		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE'); //allowed request types
 		res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-    next();
+		next();
 	});
 });
+
+function transformreq (req, res, next) {
+	req.body = req.query;
+	next();
+}
 
 
 //authorization controller
@@ -130,13 +135,15 @@ api.delete('/users', auth.user, users.deleteUser);*/
 //employers
 api.get('/employers', auth.get.guest, employers.fetchAll); //function complete
 api.get('/employers/:id', auth.get.guest, employers.fetchByID); //function complete
-/*api.post('/employers', auth.guest, employers.addEmployer);
-api.put('/employers', auth.employer, employers.updateEmployer);
+api.post('/employers', auth.post.guest, employers.addEmployer, employers.addEmployerListing);
+api.get('/ie/employers', auth.get.guest, transformreq, employers.addEmployer, employers.addEmployerListing); //IE SUPPORT <10
+/*api.put('/employers', auth.employer, employers.updateEmployer);
 api.delete('/employers', auth.employer, jobs.deleteEmployer);*/
 api.get('/featured/employers', auth.get.guest, employers.fetchFeatured); //function complete
 
 //login server
 api.post('/login', auth.post.guest, login.process);
+api.get('/ie/login', auth.get.guest, transformreq, login.process); //IE SUPPORT <10
 
 //search server
 api.get('/search', auth.get.guest, searchdb.process);

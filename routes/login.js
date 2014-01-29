@@ -25,8 +25,9 @@ db.open(function(err, db) {
 
 exports.process = function(req, res) {
 	console.log("LOG: Opened login process() function in login route.");
-	 db.collection('employerusers', function(err, collection) {
-		collection.findOne({email: req.body.email, password: atob(req.body.password)}, function(err, result) { //base64 decoding the password ~~ an extra layer of security just in case
+	var con = true;
+	db.collection('employerusers', function(err, collection) {
+		collection.findOne({'login.email': req.body.email, 'login.password': atob(req.body.password)}, function(err, result) { //base64 decoding the password ~~ an extra layer of security just in case
 			if (err) {
 				console.log("LOG: Error occurred in login.process(): " + err);
 				if(req.query.callback !== null) {
@@ -43,12 +44,13 @@ exports.process = function(req, res) {
 				} else {
 					res.status(200).json(result); //sending back the result to the app with all user information.
 				}
-				return;
+				return con = false;
 			}
 		});
     });
+	
 	db.collection('users', function(err, collection) {
-		collection.findOne({email:req.body.email, password: atob(req.body.password)}, function(err, result) { //repeating the lookup in the users collection just in case
+		collection.findOne({"login.email":req.body.email, "login.password": atob(req.body.password)}, function(err, result) { //repeating the lookup in the users collection just in case
 			if (err) {
 				console.log("LOG: Error occurred in login.process(): " + err);
 				res.status(500).send("API Server error in login.process: " + err);	
@@ -63,13 +65,12 @@ exports.process = function(req, res) {
 					console.log("no callback found.");
 					res.status(200).json(result); //sending back the result to the app with all user information.
 				}
-			} else {
+			} else if(con) {
 				if(req.query.callback !== null) {
 					res.status(200).jsonp("User not found.");	
 				} else {
 					res.status(200).json("User not found.");	
 				}
-				
 			}
 		});
 	});
