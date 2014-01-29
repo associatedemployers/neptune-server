@@ -44,7 +44,7 @@ exports.fetchFeatured = function(req, res) {
 exports.fetchAll = function(req, res) {
 	console.log("LOG: Opened employers fetchAll() function in employers route.");
 	 db.collection('employers', function(err, collection) {
-		collection.find().toArray(function(err, items) {
+		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
 				res.jsonp(items);
 			} else {
@@ -102,9 +102,20 @@ exports.addEmployer = function(req, res, next) {
 			'created': false,
 			'error': "No data sent with request."
 		});
-		return;
+	} else {
+		next();	
 	}
+}
 
+exports.checkExistingEmail = function(req, res, next) {
+	if(req.body.account_data) {
+		var account = req.body.account_data;
+	} else {
+		var account = {};
+		account.login = {};
+		account.login.email = req.query.email;
+	}
+	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'');
 	db.collection('employerusers', function(err, collection) {
 		collection.findOne({'login.email': account.login.email}, function(err, result) {
 			if(result) {
@@ -112,21 +123,48 @@ exports.addEmployer = function(req, res, next) {
 					'created': false,
 					'error': 'An account already exists with that email address.'
 				});
-				return;
+			} else {
+				next();
 			}
 		});
+	});
+}
+
+exports.checkExistingCompany = function(req, res, next) {
+	if(req.body.account_data) {
+		var account = req.body.account_data;
+	} else {
+		var account = {};
+		account.name = {};
+		account.name.company = req.query.company;
+	}
+	account.name.company = account.name.company.replace(/(^\s+|\s+$)/g,'');
+	db.collection('employerusers', function(err, collection) {	
 		collection.findOne({'name.company': account.name.company}, function(err, result) {
 			if(result) {
 				res.send({
 					'created': false,
 					'error': 'An account already exists with that company name.'
 				});
-				return;
+			} else {
+				next();
 			}
 		});
-		
+	});
+}
+
+exports.checkComplete = function(req, res) {
+	res.send({
+		'existing': false
+	});
+}
+
+exports.createEmployerAccount = function(req, res, next) {
+	var account = req.body.account_data;
+	db.collection('employerusers', function(err, collection) {	
 		collection.insert(account, {safe:true}, function(err, result) {
 			if(err) {
+				req.account.error = true;
 				res.send({
 					'created': false,
 					'error': 'Internal Error: ' + err
