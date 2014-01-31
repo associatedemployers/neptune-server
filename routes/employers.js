@@ -224,6 +224,29 @@ exports.addEmployerListing = function(req, res) {
 	});
 }
 
+exports.fetchAllTags = function(req, res) {
+	db.collection('employers', function(err, collection) {
+		collection.find({}, { "profile.tags": 1, _id: 0 }).toArray(function(err, items) {
+			if(err) {
+				res.send(err);
+				return;
+			} else {
+				var tagResults = [];
+				items.forEach(function(item) { //iterate over the result items
+					if(!item.profile) { return; }
+					if(!item.profile.tags) { return; }
+					item.profile.tags.forEach(function(tag) { //iterate over the tags
+						if(tagResults.indexOf(tag) < 0) {
+							tagResults.push(tag);
+						}
+					});
+				});
+				res.json(tagResults);
+			}
+		});
+	});
+}
+
 exports.fetchByState = function(req, res, next) {
 	var state = req.params.state;
 	if(!state) {
@@ -231,7 +254,7 @@ exports.fetchByState = function(req, res, next) {
 		return;	
 	}
 	db.collection('employers', function(err, collection) {
-		collection.find({ "address.state": state }).limit( 500 ).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find({ "address.state": state }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
 			if(err) {
 				res.send(err);
 				return;
