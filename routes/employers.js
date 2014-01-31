@@ -253,6 +253,7 @@ exports.radiusSearch = function(req, res, next) {
 			'longitude': q.lng
 		};
 	items.forEach(function(item) { //iterate over the items array
+		if(!item.address.geo) { return; }
 		var item_geo = {
 			'latitude': item.address.geo.lat,
 			'longitude': item.address.geo.lng
