@@ -135,10 +135,11 @@ api.put('/users', auth.user, users.updateUser);
 api.delete('/users', auth.user, users.deleteUser);*/
 
 //employers
+api.get('/search/employers/location/:state', auth.get.guest, employers.fetchByState, employers.radiusSearch);
 api.get('/employers', auth.get.guest, employers.fetchAll); //function complete
 api.get('/employers/:id', auth.get.guest, employers.fetchByID); //function complete
-api.post('/employers', auth.post.guest, employers.addEmployer, employers.checkExistingEmail, employers.checkExistingCompany, employers.createEmployerAccount, employers.addEmployerListing);
-api.get('/ie/employers', auth.get.guest, transformreq, employers.addEmployer, employers.checkExistingEmail, employers.checkExistingCompany, employers.createEmployerAccount, employers.addEmployerListing); //IE SUPPORT <10
+api.post('/employers', auth.post.guest, employers.addEmployer, employers.checkExistingEmail, employers.checkExistingCompany, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing);
+api.get('/ie/employers', auth.get.guest, transformreq, employers.addEmployer, employers.checkExistingEmail, employers.checkExistingCompany, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing); //IE SUPPORT <10
 api.get('/check-existing-employer-email', auth.get.guest, employers.checkExistingEmail, employers.checkComplete);
 api.get('/check-existing-employer-company', auth.get.guest, employers.checkExistingCompany, employers.checkComplete);
 /*api.put('/employers', auth.employer, employers.updateEmployer);

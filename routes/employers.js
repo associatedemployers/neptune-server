@@ -1,7 +1,9 @@
 // Employers Route
 console.log("STARTUP: Loaded employers route.");
 
-var mongo = require('mongodb');
+var mongo = require('mongodb'),
+	gm = require('googlemaps'),
+	haversine = require('haversine');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Employers Collection Does Not Exist.",
@@ -43,7 +45,7 @@ exports.fetchFeatured = function(req, res) {
 
 exports.fetchAll = function(req, res) {
 	console.log("LOG: Opened employers fetchAll() function in employers route.");
-	 db.collection('employers', function(err, collection) {
+	db.collection('employers', function(err, collection) {
 		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
 				res.jsonp(items);
@@ -159,25 +161,40 @@ exports.checkComplete = function(req, res) {
 	});
 }
 
-exports.createEmployerAccount = function(req, res, next) {
-	var account = req.body.account_data;
-	db.collection('employerusers', function(err, collection) {	
-		collection.insert(account, {safe:true}, function(err, result) {
-			if(err) {
-				req.account.error = true;
-				res.send({
-					'created': false,
-					'error': 'Internal Error: ' + err
-				});
-			} else {
-				req.body.employerid = result[0]._id;
-				next();
-			}
-		});
+exports.geocode = function(req, res, next) {
+	var a = req.body.account_data.address;
+	if(!a.line1 && !a.city && !a.state && !a.zipcode) {
+		return;
+	}
+	var adrstr = a.line1 + a.city + a.state + a.zipcode;
+	gm.geocode(adrstr, function(err, data){
+		req.body.account_data.address.geo = {};
+		req.body.account_data.address.geo.lat = data.results[0].geometry.location.lat;
+		req.body.account_data.address.geo.lng = data.results[0].geometry.location.lng;
+		next();
 	});
 }
 
-exports.addEmployerListing  = function(req, res) {
+exports.createEmployerAccount = function(req, res, next) {
+	var account = req.body.account_data;
+		
+		db.collection('employerusers', function(err, collection) {	
+			collection.insert(account, {safe:true}, function(err, result) {
+				if(err) {
+					req.account.error = true;
+					res.send({
+						'created': false,
+						'error': 'Internal Error: ' + err
+					});
+				} else {
+					req.body.employerid = result[0]._id;
+					next();
+				}
+			});
+		});
+}
+
+exports.addEmployerListing = function(req, res) {
 	var account = req.body.account_data;
 	
 	var related_id = req.body.employerid;
@@ -205,4 +222,44 @@ exports.addEmployerListing  = function(req, res) {
 			}
 		});
 	});
+}
+
+exports.fetchByState = function(req, res, next) {
+	var state = req.params.state;
+	if(!state) {
+		res.send("No state data received.");
+		return;	
+	}
+	db.collection('employers', function(err, collection) {
+		collection.find({ "address.state": state }).limit( 500 ).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+			if(err) {
+				res.send(err);
+				return;
+			} else {
+				req.dataArray = items;
+				next();
+			}
+		});
+	});
+}
+
+exports.radiusSearch = function(req, res, next) {
+	var q = req.query;
+	var r = req.query.radius;
+	var items = req.dataArray,
+		results = [],
+		manifest = {
+			'latitude': q.lat,
+			'longitude': q.lng
+		};
+	items.forEach(function(item) { //iterate over the items array
+		var item_geo = {
+			'latitude': item.address.geo.lat,
+			'longitude': item.address.geo.lng
+		}
+		if(haversine(manifest, item_geo, {'unit': 'mi'}) < r) { //distance less than search radius
+			results.push(item);	//push the item into the results array
+		}
+	});
+	res.json(results);
 }
