@@ -247,6 +247,21 @@ exports.fetchAllTags = function(req, res) {
 	});
 }
 
+exports.fetchByTag = function(req, res) {
+	var tags = req.query.tags;
+	console.log(JSON.stringify(tags));
+	db.collection('employers', function(err, collection) {
+		collection.find({'profile.tags': { $all: tags } }).toArray(function(err, items) {
+			if(err) {
+				res.send(err);
+				return;
+			} else {
+				res.json(items);
+			}
+		});
+	});
+}
+
 exports.fetchByState = function(req, res, next) {
 	var state = req.params.state;
 	if(!state) {

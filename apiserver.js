@@ -136,6 +136,7 @@ api.delete('/users', auth.user, users.deleteUser);*/
 
 //employers
 api.get('/search/employers/location/:state', auth.get.guest, employers.fetchByState, employers.radiusSearch);
+api.get('/search/employers/tags', auth.get.guest, employers.fetchByTag);
 api.get('/fetchtags/employers', auth.get.guest, employers.fetchAllTags);
 api.get('/employers', auth.get.guest, employers.fetchAll); //function complete
 api.get('/employers/:id', auth.get.guest, employers.fetchByID); //function complete
