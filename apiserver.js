@@ -20,6 +20,7 @@ employers = require('./routes/employers'),
 jobs = require('./routes/jobs'),
 login = require('./routes/login'),
 searchdb = require('./routes/searchdb'),
+indexer = require('./routes/indexer'),
 
 mailtemplates = require('./config/mail.templates'),
 token = require('./config/tokens');
@@ -130,6 +131,7 @@ api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured); //function comple
 //users
 api.get('/users', auth.get.admin, users.fetchAll);
 api.get('/users/:id', auth.get.admin, users.fetchByID);
+api.post('/user/index-resume', auth.post.guest, indexer.indexFile);
 /*api.post('/users', auth.guest, users.addUser);
 api.put('/users', auth.user, users.updateUser);
 api.delete('/users', auth.user, users.deleteUser);*/
