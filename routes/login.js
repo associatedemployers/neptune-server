@@ -23,9 +23,7 @@ db.open(function(err, db) {
 	}
 });
 
-exports.process = function(req, res) {
-	console.log("LOG: Opened login process() function in login route.");
-	var con = true;
+exports.checkemp = function(req, res, next) {
 	db.collection('employerusers', function(err, collection) {
 		collection.findOne({'login.email': req.body.email, 'login.password': atob(req.body.password)}, function(err, result) { //base64 decoding the password ~~ an extra layer of security just in case
 			if (err) {
@@ -44,26 +42,29 @@ exports.process = function(req, res) {
 				} else {
 					res.status(200).json(result); //sending back the result to the app with all user information.
 				}
-				return con = false;
+			} else {
+				next();
 			}
 		});
     });
-	
+}
+
+exports.checkusr = function(req, res) {
 	db.collection('users', function(err, collection) {
 		collection.findOne({"login.email":req.body.email, "login.password": atob(req.body.password)}, function(err, result) { //repeating the lookup in the users collection just in case
-			if (err && con) {
+			if (err) {
 				console.log("LOG: Error occurred in login.process(): " + err);
-				res.status(500).send("API Server error in login.process: " + err);	
+				res.status(500).send("API Server error in login.process: " + err);
 				return;
 			}
-			if(result && con) {
+			if(result) {
 				result['type'] = "user";
 				if(req.query.callback !== null) {
 					res.status(200).jsonp(result); //sending back the result to the app with all user information.
 				} else {
 					res.status(200).json(result); //sending back the result to the app with all user information.
 				}
-			} else if(con) {
+			} else {
 				if(req.query.callback !== null) {
 					res.status(200).jsonp("User not found.");	
 				} else {

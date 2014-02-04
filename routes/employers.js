@@ -109,7 +109,7 @@ exports.addEmployer = function(req, res, next) {
 	}
 }
 
-exports.checkExistingEmail = function(req, res, next) {
+exports.checkExistingEmployerEmail = function(req, res, next) {
 	if(req.body.account_data) {
 		var account = req.body.account_data;
 	} else {
@@ -119,6 +119,29 @@ exports.checkExistingEmail = function(req, res, next) {
 	}
 	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'');
 	db.collection('employerusers', function(err, collection) {
+		collection.findOne({'login.email': account.login.email}, function(err, result) {
+			if(result) {
+				res.send({
+					'created': false,
+					'error': 'An account already exists with that email address.'
+				});
+			} else {
+				next();
+			}
+		});
+	});
+}
+
+exports.checkExistingUserEmail = function(req, res, next) {
+	if(req.body.account_data) {
+		var account = req.body.account_data;
+	} else {
+		var account = {};
+		account.login = {};
+		account.login.email = req.query.email;
+	}
+	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'');
+	db.collection('users', function(err, collection) {
 		collection.findOne({'login.email': account.login.email}, function(err, result) {
 			if(result) {
 				res.send({
@@ -178,20 +201,20 @@ exports.geocode = function(req, res, next) {
 exports.createEmployerAccount = function(req, res, next) {
 	var account = req.body.account_data;
 		
-		db.collection('employerusers', function(err, collection) {	
-			collection.insert(account, {safe:true}, function(err, result) {
-				if(err) {
-					req.account.error = true;
-					res.send({
-						'created': false,
-						'error': 'Internal Error: ' + err
-					});
-				} else {
-					req.body.employerid = result[0]._id;
-					next();
-				}
-			});
+	db.collection('employerusers', function(err, collection) {	
+		collection.insert(account, {safe:true}, function(err, result) {
+			if(err) {
+				req.account.error = true;
+				res.send({
+					'created': false,
+					'error': 'Internal Error: ' + err
+				});
+			} else {
+				req.body.employerid = result[0]._id;
+				next();
+			}
 		});
+	});
 }
 
 exports.addEmployerListing = function(req, res) {

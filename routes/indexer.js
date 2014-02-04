@@ -3,7 +3,8 @@ console.log("STARTUP: Loaded indexer.");
 
 var mongo = require('mongodb'),
 	fs = require('fs'),
-	textract = require('textract');
+	textract = require('textract'),
+	http = require('follow-redirects').http;
 
 var exception = {
 	'1001': "API ERROR 1001: Failed To Open DB."
@@ -25,25 +26,70 @@ db.open(function(err, db) {
 });
 
 exports.indexFile = function (req, res, next) {
-	console.log(JSON.stringify(req.body));
-	var path = req.body.path,
-		ext = req.body.extension,
-		ext = ext.toString().toLowerCase();
-	if(ext == "pdf" || ext == "doc" || ext == "docx" || ext == "rtf" || ext == "txt") {
-		if(ext == "rtf") {
-			textract("application/msword", path, function(err, text) {
-				console.log(err);
-				console.log(text);
-				res.send(text);
+	var resm = req.body.account_data.resume;	
+	if(resm) {
+		var path = req.body.account_data.resume.path,
+			path = path.replace("../../", "http://www.aejobs.org:80/dev/"),
+			filename = path.split("/").pop(),
+			ext = req.body.account_data.resume.extension,
+			ext = ext.toString().toLowerCase();
+	}
+	console.log(path);
+	http.get(path, function (fileresponse) {
+		if (fileresponse.statusCode === 200) {
+			fileresponse.pipe(fs.createWriteStream(__dirname + '/../tmp_indexing/' + filename));
+			fileresponse.on('end', function() {
+				path = __dirname + '/../tmp_indexing/' + filename;
+				if(ext == "pdf" || ext == "doc" || ext == "docx" || ext == "rtf" || ext == "txt") {
+					if(ext == "rtf") {
+						textract("application/msword", path, function(err, text) {
+							if(err) {
+								console.log(err);
+								req.indexed = false;
+								req.extractedText = "Error: " + err;
+							} else {
+								req.indexed = true;
+								req.extractedText = text;
+							}
+							fs.unlink(path);
+							next();
+						});
+					} else {
+						textract(path, function(err, text) {
+							if(err) {
+								console.log(err);
+								req.indexed = false;
+								req.extractedText = "Error: " + err;
+							} else {
+								req.indexed = true;
+								req.extractedText = text;
+							}
+							fs.unlink(path);
+							next();
+						});
+					}
+				} else {
+					req.indexed = false;
+					req.extractedText = "Error: User resume file type not supported. (." + ext + ")";
+					fs.unlink(path);
+					next();
+				}
 			});
 		} else {
-			textract(path, function(err, text) {
-				console.log(err);
-				console.log(text);
-				res.send(text);
-			});
+			console.error('The address is unavailable. (%d)', fileresponse.statusCode);
+			req.indexed = false;
+			req.extractedText = "Error: " + fileresponse.statusCode;
 		}
-	} else {
-		res.send("File type not supported.");
-	}
+	});
+		
+}
+
+exports.saveToUser = function (req, res, next) {
+	db.collection('users', function(err, collection) {
+		collection.update({ '_id': req.body.userid },{ $set: { 'indexed': req.indexed, 'extracted_text': req.extractedText } }, function(err, result) {
+			if(err) {
+				console.log("Fatal Error on 'saveToUser': " + err);	
+			}
+		});
+	});
 }
