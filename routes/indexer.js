@@ -34,7 +34,6 @@ exports.indexFile = function (req, res, next) {
 			ext = req.body.account_data.resume.extension,
 			ext = ext.toString().toLowerCase();
 	}
-	console.log(path);
 	http.get(path, function (fileresponse) {
 		if (fileresponse.statusCode === 200) {
 			fileresponse.pipe(fs.createWriteStream(__dirname + '/../tmp_indexing/' + filename));
@@ -84,11 +83,11 @@ exports.indexFile = function (req, res, next) {
 		
 }
 
-exports.saveToUser = function (req, res, next) {
-	db.collection('users', function(err, collection) {
-		collection.update({ '_id': req.body.userid },{ $set: { 'indexed': req.indexed, 'extracted_text': req.extractedText } }, function(err, result) {
+exports.saveResume = function (req, res, next) {
+	db.collection('resumes', function(err, collection) {
+		collection.insert({ 'user_id': req.body.userid, 'indexed': req.indexed, 'extracted_text': req.extractedText }, function(err, result) {
 			if(err) {
-				console.log("Fatal Error on 'saveToUser': " + err);	
+				console.log("Fatal Error on 'saveToUser': " + err);
 			}
 		});
 	});

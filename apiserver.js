@@ -131,8 +131,8 @@ api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured); //function comple
 //users
 api.get('/users', auth.get.admin, users.fetchAll);
 api.get('/users/:id', auth.get.admin, users.fetchByID);
-api.post('/users', auth.post.guest, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, users.addUser, indexer.indexFile, indexer.saveToUser);
-api.get('/ie/users', auth.get.guest, transformreq, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, users.addUser, indexer.indexFile, indexer.saveToUser);
+api.post('/users', auth.post.guest, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, users.addUser, indexer.indexFile, indexer.saveResume);
+api.get('/ie/users', auth.get.guest, transformreq, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, users.addUser, indexer.indexFile, indexer.saveResume);
 
 /*api.put('/users', auth.user, users.updateUser);
 api.delete('/users', auth.user, users.deleteUser);*/
