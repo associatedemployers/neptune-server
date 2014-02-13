@@ -1,7 +1,9 @@
 // Users Route
 console.log("STARTUP: Loaded users route.");
 
-var mongo = require('mongodb');
+var mongo = require('mongodb'),
+	nodemailer = require('nodemailer'),
+	mailtemplate = require('.././config/mail.templates');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Users Collection Does Not Exist.",
@@ -29,7 +31,6 @@ db.open(function(err, db) {
 });
 
 exports.addUser = function(req, res, next) {
-	req.body.account_data.activated = false;
 	var account = req.body.account_data;
 	if(!account) {
 		res.send({
@@ -52,6 +53,22 @@ exports.addUser = function(req, res, next) {
 				res.send({
 					'created': true
 				});
+				
+				var transport = nodemailer.createTransport("sendmail");
+				var mailTemplate = mailtemplate.newUser(account.name);
+				transport.sendMail({
+					from: "no-reply@aejobs.org",
+					to: account.login.email,
+					subject: "Welcome to aejobs" + account.name.first,
+					text: mailTemplate.plain,
+					html: mailTemplate.html
+				}, function(error, response){
+					if(error){
+						console.log(error);
+					}
+					transport.close(); // shut down the connection pool, no more messages
+				});
+				
 				if(account.privacy.index_resume) {
 					next();
 				}

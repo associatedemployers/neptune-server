@@ -2,7 +2,9 @@
 console.log("STARTUP: Loaded transaction route.");
 
 var mongo = require('mongodb'),
-	braintree = require('braintree');
+	braintree = require('braintree'),
+	nodemailer = require('nodemailer'),
+	mailtemplate = require('.././config/mail.templates');
 	
 var exception = {
 	'1001': "API ERROR 1001: Failed To Open DB."
@@ -33,10 +35,10 @@ db.open(function(err, db) {
 exports.process = function(req, res, next) {
 	var order = req.query.order;
 	var saleObject;
-	if(order.savedCard == true) {
+	if(order.savedCard) {
 		saleObject = {
 			amount: order.total,
-			paymentMethodToken: order.paymentToken,
+			paymentMethodToken: order.savedCard,
 			creditCard: {
 				cvv: order.card.cvv
 			},
@@ -57,6 +59,12 @@ exports.process = function(req, res, next) {
 				expirationMonth: order.card.expiration.month,
 				expirationYear: order.card.expiration.year	
 			},
+			billing: {
+				streetAddress: order.billing.address.line1,
+				locality: order.billing.address.city,
+				region: order.billing.address.state,
+				postalCode: order.billing.address.zip
+			},
 			options: {
 				submitForSettlement: true,
 				storeInVaultOnSuccess: true
@@ -75,15 +83,36 @@ exports.process = function(req, res, next) {
 				expirationMonth: order.card.expiration.month,
 				expirationYear: order.card.expiration.year	
 			},
+			billing: {
+				streetAddress: order.billing.address.line1,
+				locality: order.billing.address.city,
+				region: order.billing.address.state,
+				postalCode: order.billing.address.zip
+			},
 			options: {
 				submitForSettlement: true
 			}
 		}
 	}
-	
 	gateway.transaction.sale(saleObject, function(err, result) {
 		if(result.success) {
 			req.transactionResult = result;
+			if(order.type == "listing") {
+				var transport = nodemailer.createTransport("sendmail");
+				var template = mailtemplate.newListing(order.billing.name, result.transaction.id, order.total);
+				transport.sendMail({
+					from: "no-reply@aejobs.org",
+					to: order.email,
+					subject: "Thanks for your order, " + order.billing.name.company,
+					text: template.plain,
+					html: template.html
+				}, function(error, response){
+					if(error){
+						console.log(error);
+					}
+					transport.close(); // shut down the connection pool, no more messages
+				});
+			}	
 			next();
 		} else {
 			res.json({

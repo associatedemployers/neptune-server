@@ -31,9 +31,9 @@ db.open(function(err, db) {
 exports.fetchFeatured = function(req, res) {
 	console.log("LOG: Opened jobs fetchFeatured() function in jobs route.");
 	 db.collection('jobs', function(err, collection) {
-		collection.find({featured: true}).toArray(function(err, items) {
-            if(req.query.callback !== null) {
-				res.jsonp(items);
+		collection.find({featured: "true"}).toArray(function(err, items) {
+			if(err) {
+				res.send("error: " + err);	
 			} else {
 				res.json(items);
 			}
@@ -87,6 +87,32 @@ exports.fetchByID = function(req, res) {
 				} else {
 					res.json(item);
 				}
+			}
+		});
+	});
+}
+
+exports.addJob = function(req, res) {
+	if(!req.body.listing) {
+		res.send({
+			'status': "in error",
+			'error': "No data sent with request."
+		});
+		return;
+	}
+	var listing = req.body.listing;
+	db.collection('jobs', function(err, collection) {
+		collection.insert(listing, { safe: true }, function (err, result) {
+			if(err) {
+				res.send({
+					'status': "in error",
+					'error': "No data sent with request."
+				});
+			} else {
+				res.send({
+					'status': "created",
+					'error': null
+				});
 			}
 		});
 	});

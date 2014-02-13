@@ -38,7 +38,7 @@ exports.checkemp = function(req, res, next) {
 			}
 			if(result) {
 				result['type'] = "employer";
-				result['userToken'] = token.user;
+				result['userToken'] = token.employer;
 				if(req.query.callback !== null) {
 					res.status(200).jsonp(result); //sending back the result to the app with all user information.
 				} else {
@@ -53,7 +53,7 @@ exports.checkemp = function(req, res, next) {
 
 exports.checkusr = function(req, res) {
 	db.collection('users', function(err, collection) {
-		collection.findOne({"login.email":req.body.email, "login.password": atob(req.body.password)}, function(err, result) { //repeating the lookup in the users collection just in case
+		collection.findOne({"login.email":req.body.email, "login.password": atob(req.body.password)}, function(err, result) { //repeating the lookup in the users collection
 			if (err) {
 				console.log("LOG: Error occurred in login.process(): " + err);
 				res.status(500).send("API Server error in login.process: " + err);

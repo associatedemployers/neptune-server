@@ -3,7 +3,9 @@ console.log("STARTUP: Loaded employers route.");
 
 var mongo = require('mongodb'),
 	gm = require('googlemaps'),
-	haversine = require('haversine');
+	haversine = require('haversine'),
+	nodemailer = require('nodemailer'),
+	mailtemplate = require('.././config/mail.templates');;
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Employers Collection Does Not Exist.",
@@ -199,7 +201,7 @@ exports.geocode = function(req, res, next) {
 
 exports.createEmployerAccount = function(req, res, next) {
 	var account = req.body.account_data;
-		
+	
 	db.collection('employerusers', function(err, collection) {	
 		collection.insert(account, {safe:true}, function(err, result) {
 			if(err) {
@@ -210,6 +212,20 @@ exports.createEmployerAccount = function(req, res, next) {
 				});
 			} else {
 				req.body.employerid = result[0]._id;
+				var transport = nodemailer.createTransport("sendmail");
+				var mailTemplate = mailtemplate.newEmployer(account.name);
+				transport.sendMail({
+					from: "no-reply@aejobs.org",
+					to: account.login.email,
+					subject: "Welcome to aejobs, " + account.name.company,
+					text: mailTemplate.plain,
+					html: mailTemplate.html
+				}, function(error, response){
+					if(error){
+						console.log(error);
+					}
+					transport.close(); // shut down the connection pool, no more messages
+				});
 				next();
 			}
 		});
