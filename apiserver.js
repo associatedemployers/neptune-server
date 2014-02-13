@@ -158,7 +158,7 @@ api.post('/login', auth.post.guest, login.checkemp, login.checkusr);//function c
 api.get('/ie/login', auth.get.guest, transformreq, login.checkemp, login.checkusr); //IE SUPPORT <10 //function complete
 
 //search server
-api.get('/search', auth.get.guest, searchdb.process); //function complete
+api.get('/search', auth.get.guest, searchdb.process, searchdb.sendResults); //function complete
 
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
 END Route Controllers

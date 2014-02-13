@@ -23,16 +23,15 @@ db.open(function(err, db) {
 	}
 });
 
-exports.process = function(req, res) {
+exports.process = function(req, res, next) {
 	if(!req.query.search_query) { res.json("No Keywords."); return; }
 	var results = [],
 	query = req.query.search_query,
 	sarray = query.split(" "); //split the keywords
 	
-	console.log("LOG: Performing search query.");
-	
 	db.collection('jobs', function(err, collection) { //connect to jobs collection
 		collection.find().toArray(function(err, items) { //press all jobs into an array
+			var results = [];
 			items.forEach(function(item) { //iterate over the items array
 				delete item['_id'];
 				var s = JSON.stringify(item); //convert each item in items to a string
@@ -46,19 +45,12 @@ exports.process = function(req, res) {
 					results.push(item);	//push the item into the results array
 				}
 			});
-		if(req.query.callback !== null) {
-			if(results) {
-				res.jsonp(results);
-			} else {
-				res.jsonp("No Results Found.");	
-			}
-		} else {
-			if(results) {
-				res.json(results);
-			} else {
-				res.json("No Results Found.");	
-			}
-		}
+			req.results = results;
+			next();
 		});
 	});
+}
+
+exports.sendResults = function(req, res) {
+	res.json(req.results);	
 }
