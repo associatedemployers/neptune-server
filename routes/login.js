@@ -2,7 +2,8 @@
 console.log("STARTUP: Loaded login route.");
 
 var mongo = require('mongodb'),
-atob = require('atob');
+	atob = require('atob'),
+	token = require('.././config/tokens');
 
 var exception = {
 	'1001': "API ERROR 1001: Failed To Open DB."
@@ -37,6 +38,7 @@ exports.checkemp = function(req, res, next) {
 			}
 			if(result) {
 				result['type'] = "employer";
+				result['userToken'] = token.user;
 				if(req.query.callback !== null) {
 					res.status(200).jsonp(result); //sending back the result to the app with all user information.
 				} else {
@@ -59,6 +61,7 @@ exports.checkusr = function(req, res) {
 			}
 			if(result) {
 				result['type'] = "user";
+				result['userToken'] = token.user;
 				if(req.query.callback !== null) {
 					res.status(200).jsonp(result); //sending back the result to the app with all user information.
 				} else {
@@ -73,14 +76,4 @@ exports.checkusr = function(req, res) {
 			}
 		});
 	});
-}
-
-var sessionToken = {
-	create: function () {
-		
-	},
-	store: function () {
-		
-	}
-	
 }

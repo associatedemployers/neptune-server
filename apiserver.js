@@ -21,6 +21,7 @@ jobs = require('./routes/jobs'),
 login = require('./routes/login'),
 searchdb = require('./routes/searchdb'),
 indexer = require('./routes/indexer'),
+transaction = require('./routes/transaction'),
 
 mailtemplates = require('./config/mail.templates'),
 token = require('./config/tokens');
@@ -133,7 +134,6 @@ api.get('/users', auth.get.admin, users.fetchAll);
 api.get('/users/:id', auth.get.admin, users.fetchByID);
 api.post('/users', auth.post.guest, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, users.addUser, indexer.indexFile, indexer.saveResume);
 api.get('/ie/users', auth.get.guest, transformreq, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, users.addUser, indexer.indexFile, indexer.saveResume);
-
 /*api.put('/users', auth.user, users.updateUser);
 api.delete('/users', auth.user, users.deleteUser);*/
 
@@ -147,6 +147,7 @@ api.post('/employers', auth.post.guest, employers.addEmployer, employers.checkEx
 api.get('/ie/employers', auth.get.guest, transformreq, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing); //IE SUPPORT <10
 api.get('/check-existing-email', auth.get.guest,  employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.checkComplete);
 api.get('/check-existing-employer-company', auth.get.guest,  employers.checkExistingCompany, employers.checkComplete);
+api.get('/process-order', auth.get.user, transaction.process, transaction.storeOrder, transaction.storeCard);
 /*api.put('/employers', auth.employer, employers.updateEmployer);
 api.delete('/employers', auth.employer, jobs.deleteEmployer);*/
 api.get('/featured/employers', auth.get.guest, employers.fetchFeatured); //function complete

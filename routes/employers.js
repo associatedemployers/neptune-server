@@ -52,7 +52,6 @@ exports.fetchAll = function(req, res) {
 			} else {
 				res.json(items);
 			}
-			
         });
     });
 }
