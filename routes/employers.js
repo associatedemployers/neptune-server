@@ -5,7 +5,8 @@ var mongo = require('mongodb'),
 	gm = require('googlemaps'),
 	haversine = require('haversine'),
 	nodemailer = require('nodemailer'),
-	mailtemplate = require('.././config/mail.templates');;
+	mailtemplate = require('.././config/mail.templates'),
+	md5 = require('MD5');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Employers Collection Does Not Exist.",
@@ -33,7 +34,6 @@ db.open(function(err, db) {
 });
 
 exports.fetchFeatured = function(req, res) {
-	console.log("LOG: Opened employers fetchFeatured() function in employers route.");
 	 db.collection('employers', function(err, collection) {
 		collection.find({featured: true}).toArray(function(err, items) {
             if(req.query.callback !== null) {
@@ -46,7 +46,6 @@ exports.fetchFeatured = function(req, res) {
 }
 
 exports.fetchAll = function(req, res) {
-	console.log("LOG: Opened employers fetchAll() function in employers route.");
 	db.collection('employers', function(err, collection) {
 		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
@@ -60,8 +59,6 @@ exports.fetchAll = function(req, res) {
 
 exports.fetchByID = function(req, res) {
 	var id = req.params.id;
-	console.log("LOG: Opened employers fetchByID() function in employers route.");
-	console.log("LOG: Opening connection to retrieve employer: " + id);
 	if(id.length !== 24) {
 		if(req.query.callback !== null) {
 			res.status(404).jsonp("Not Found");
@@ -212,21 +209,28 @@ exports.createEmployerAccount = function(req, res, next) {
 				});
 			} else {
 				req.body.employerid = result[0]._id;
-				var transport = nodemailer.createTransport("sendmail");
-				var mailTemplate = mailtemplate.newEmployer(account.name);
-				transport.sendMail({
-					from: "no-reply@aejobs.org",
-					to: account.login.email,
-					subject: "Welcome to aejobs, " + account.name.company,
-					text: mailTemplate.plain,
-					html: mailTemplate.html
-				}, function(error, response){
-					if(error){
-						console.log(error);
-					}
-					transport.close(); // shut down the connection pool, no more messages
+				var verificationLink =	md5(account.name.company);
+				db.collection('verify', function(err, vrf) {
+					vrf.insert({ 'employer_id': req.body.employerid, 'link_address': verificationLink }, { safe: true }, function(err, reslt) {
+						
+						var transport = nodemailer.createTransport("sendmail");
+						var mailTemplate = mailtemplate.newEmployer(account.name, verificationLink);
+						transport.sendMail({
+							from: "no-reply@aejobs.org",
+							to: account.login.email,
+							subject: "Welcome to aejobs, " + account.name.company,
+							text: mailTemplate.plain,
+							html: mailTemplate.html
+						}, function(error, response){
+							if(error){
+								console.log(error);
+							}
+							transport.close(); // shut down the connection pool, no more messages
+						});
+						next();
+					});
 				});
-				next();
+				
 			}
 		});
 	});
@@ -339,4 +343,70 @@ exports.radiusSearch = function(req, res, next) {
 		}
 	});
 	res.json(results);
+}
+
+exports.verifyAccount = function(req, res, next) {
+	var vrf = req.query.id,
+		e_id;
+	db.collection('verify', function(err, collection) {
+		collection.findOne({ 'link_address': vrf }, function(err, item) {
+			if(err) {
+				res.json({
+					'verified': false,
+					'error': err
+				});
+			} else {
+				if(!item) {
+					res.json({
+						'verified': false,
+						'alreadyUsed': true
+					});
+				} else {
+					req.body.e_id = item.employer_id;
+					collection.remove({ 'link_address': vrf }, function(err, numberOfRemoved) {
+						if(err) {
+							res.json({
+								'verified': false,
+								'error': err
+							});
+						} else {
+							next();	
+						}
+					});
+				}
+			}
+		});
+	});
+}
+
+exports.writeAccount = function(req, res, next) {
+	db.collection('employerusers', function(err, collection) {
+		collection.update({ '_id': new BSON.ObjectID(req.body.e_id.toString()) }, { $set: { 'activated': true } }, function(err, result) {
+			if(err) {
+				res.json({
+					'verified': false,
+					'error': err
+				});
+			} else {
+				next();
+			}
+		});
+	});	
+}
+
+exports.writeListing = function(req, res) {
+	db.collection('employers', function(err, collection) {
+		collection.update({ 'employer_id': new BSON.ObjectID(req.body.e_id.toString()) }, { $set: { 'activated': true } }, function(err, result) {
+			if(err) {
+				res.json({
+					'verified': false,
+					'error': err
+				});
+			} else {
+				res.json({
+					'verified': true
+				});
+			}
+		});
+	});	
 }

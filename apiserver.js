@@ -152,6 +152,7 @@ api.get('/process-order', auth.get.employer, transaction.process, transaction.st
 /*api.put('/employers', auth.employer, employers.updateEmployer);
 api.delete('/employers', auth.employer, jobs.deleteEmployer);*/
 api.get('/featured/employers', auth.get.guest, employers.fetchFeatured); //function complete
+api.get('/employer/verify-account', auth.get.guest, employers.verifyAccount, employers.writeAccount, employers.writeListing); //function complete
 
 //login server
 api.post('/login', auth.post.guest, login.checkemp, login.checkusr);//function complete

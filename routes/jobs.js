@@ -17,7 +17,6 @@ db = new Db('ae', server, {safe: true}, {strict: false});
 
 db.open(function(err, db) {
     if(!err) {
-        console.log("STARTUP: Connected to database on jobs route.");
         db.collection('jobs', function(err, collection) {
             if (err) {
                 console.log(exception['1001_2']);
@@ -29,7 +28,6 @@ db.open(function(err, db) {
 });
 
 exports.fetchFeatured = function(req, res) {
-	console.log("LOG: Opened jobs fetchFeatured() function in jobs route.");
 	 db.collection('jobs', function(err, collection) {
 		collection.find({featured: "true"}).toArray(function(err, items) {
 			if(err) {
@@ -42,7 +40,6 @@ exports.fetchFeatured = function(req, res) {
 }
 
 exports.fetchAll = function(req, res) {
-	console.log("LOG: Opened jobs fetchAll() function in jobs route.");
 	 db.collection('jobs', function(err, collection) {
 		collection.find().toArray(function(err, items) {
             if(req.query.callback !== null) {
@@ -56,8 +53,6 @@ exports.fetchAll = function(req, res) {
 
 exports.fetchByID = function(req, res) {
 	var id = req.params.id;
-	console.log("LOG: Opened jobs fetchByID() function in jobs route.");
-	console.log("LOG: Opening connection to retrieve job: " + id);
 	if(id.length !== 24) {
 		if(req.query.callback !== null) {
 			res.status(404).jsonp("Not Found");
