@@ -33,7 +33,7 @@ api.configure(function () {
 	api.use(express.urlencoded());
 	api.use(function (req, res, next) {
 		res.setHeader('Access-Control-Allow-Origin', '*'); //allowed websites
-		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE'); //allowed request types
+		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT'); //allowed request types
 		res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
 		next();
 	});
@@ -124,8 +124,9 @@ XXXXXXXXXXXXXXXXXXXXXXXXXX */
 //jobs
 api.get('/jobs', auth.get.guest, jobs.fetchAll); //function complete
 api.get('/jobs/:id', auth.get.guest, jobs.fetchByID); //function complete
-api.post('/jobs', auth.post.employer, jobs.addJob); 
-api.get('/ie/job/add', auth.get.employer, transformreq, jobs.addJob);
+api.get('/job/save/:id', auth.get.employer, jobs.saveListing);
+api.post('/jobs', auth.post.employer, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile); 
+api.get('/ie/job/add', auth.get.employer, transformreq, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile);
 /*api.put('/jobs', auth.employer, employers.updateJob);
 api.delete('/jobs', auth.employer, jobs.deleteJob);*/
 api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured); //function complete
@@ -144,7 +145,7 @@ api.get('/search/employers/tags', auth.get.guest, employers.fetchByTag);//functi
 api.get('/fetchtags/employers', auth.get.guest, employers.fetchAllTags);//function complete
 api.get('/employers', auth.get.guest, employers.fetchAll); //function complete
 api.get('/employers/:id', auth.get.guest, employers.fetchByID); //function complete
-api.post('/employers', auth.post.guest, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.checkExistingCompany, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing);//function complete
+api.post('/employers', auth.post.guest, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing);//function complete
 api.get('/ie/employers', auth.get.guest, transformreq, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing); //IE SUPPORT <10 //function complete
 api.get('/check-existing-email', auth.get.guest,  employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.checkComplete);//function complete
 api.get('/check-existing-employer-company', auth.get.guest,  employers.checkExistingCompany, employers.checkComplete);//function complete
@@ -154,12 +155,25 @@ api.delete('/employers', auth.employer, jobs.deleteEmployer);*/
 api.get('/featured/employers', auth.get.guest, employers.fetchFeatured); //function complete
 api.get('/employer/verify-account', auth.get.guest, employers.verifyAccount, employers.writeAccount, employers.writeListing); //function complete
 
+api.post('/employer/sync', auth.post.employer, employers.geocode, employers.firstSync, employers.secondSync, employers.thirdSync, employers.syncOK);
+api.get('/employer/account/listings', auth.get.employer, employers.fetchListings);
+
 //login server
 api.post('/login', auth.post.guest, login.checkemp, login.checkusr);//function complete
 api.get('/ie/login', auth.get.guest, transformreq, login.checkemp, login.checkusr); //IE SUPPORT <10 //function complete
 
 //search server
 api.get('/search', auth.get.guest, searchdb.process, searchdb.sendResults); //function complete
+
+
+//Load Test Verfication
+api.get('/loaderio-32d4c71c2728a25b39d9f6cc89a715d0/', function(req, res){
+	var body = 'loaderio-32d4c71c2728a25b39d9f6cc89a715d0';
+	res.setHeader('Content-Type', 'text/plain');
+	res.setHeader('Content-Length', Buffer.byteLength(body));
+	res.end(body);
+});
+
 
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
 END Route Controllers

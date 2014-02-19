@@ -41,7 +41,7 @@ exports.fetchFeatured = function(req, res) {
 
 exports.fetchAll = function(req, res) {
 	 db.collection('jobs', function(err, collection) {
-		collection.find().toArray(function(err, items) {
+		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
 				res.jsonp(items);
 			} else {
@@ -87,7 +87,7 @@ exports.fetchByID = function(req, res) {
 	});
 }
 
-exports.addJob = function(req, res) {
+exports.addJob = function(req, res, next) {
 	if(!req.body.listing) {
 		res.send({
 			'status': "in error",
@@ -101,12 +101,34 @@ exports.addJob = function(req, res) {
 			if(err) {
 				res.send({
 					'status': "in error",
-					'error': "No data sent with request."
+					'error': "Couldn't create listing."
 				});
 			} else {
-				res.send({
-					'status': "created",
-					'error': null
+				req.listing_id = result[0]._id;
+				next();
+			}
+		});
+	});
+}
+
+exports.saveListing = function(req, res, next) {
+	var id = req.params.id;
+	var save_data = req.query.save_data;
+	if(id.length !== 24) {
+		res.json({
+			'status': 'Server Error: Invalid Object ID'
+		});
+		return;
+	}
+	db.collection('jobs', function(err, collection) {
+		collection.findAndModify({'_id':new BSON.ObjectID(id)}, [], { $set: { 'display': save_data.display, 'location': save_data.location, 'notification_email': save_data.notification_email } }, function(err, result) {
+			if(err) {
+				res.json({
+					'status': 'Mongo Error: ' + err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
 				});
 			}
 		});

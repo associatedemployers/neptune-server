@@ -35,7 +35,7 @@ db.open(function(err, db) {
 exports.process = function(req, res, next) {
 	var order = req.query.order;
 	var saleObject;
-	if(order.savedCard && order.savedCard !== false) {
+	if(order.savedCard && order.savedCard !== false && order.savedCard !== "false") {
 		saleObject = {
 			amount: order.total,
 			paymentMethodToken: order.savedCard,

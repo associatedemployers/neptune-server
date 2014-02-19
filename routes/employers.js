@@ -47,7 +47,7 @@ exports.fetchFeatured = function(req, res) {
 
 exports.fetchAll = function(req, res) {
 	db.collection('employers', function(err, collection) {
-		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find( { 'listings': { $exists: true } } ).sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
 				res.jsonp(items);
 			} else {
@@ -166,8 +166,7 @@ exports.checkExistingCompany = function(req, res, next) {
 		collection.findOne({'name.company': account.name.company}, function(err, result) {
 			if(result) {
 				res.send({
-					'created': false,
-					'error': 'An account already exists with that company name.'
+					'existing': true
 				});
 			} else {
 				next();
@@ -183,15 +182,22 @@ exports.checkComplete = function(req, res) {
 }
 
 exports.geocode = function(req, res, next) {
-	var a = req.body.account_data.address;
+	var a = (req.body.account_data) ? req.body.account_data.address : req.body.sync_data.address;
 	if(!a.line1 && !a.city && !a.state && !a.zipcode) {
+		next();
 		return;
 	}
 	var adrstr = a.line1 + a.city + a.state + a.zipcode;
 	gm.geocode(adrstr, function(err, data){
-		req.body.account_data.address.geo = {};
-		req.body.account_data.address.geo.lat = data.results[0].geometry.location.lat;
-		req.body.account_data.address.geo.lng = data.results[0].geometry.location.lng;
+		if(req.body.account_data) {
+			req.body.account_data.address.geo = {};
+			req.body.account_data.address.geo.lat = data.results[0].geometry.location.lat;
+			req.body.account_data.address.geo.lng = data.results[0].geometry.location.lng;
+		} else {
+			req.body.sync_data.address.geo = {};
+			req.body.sync_data.address.geo.lat = data.results[0].geometry.location.lat;
+			req.body.sync_data.address.geo.lng = data.results[0].geometry.location.lng;
+		}
 		next();
 	});
 }
@@ -409,4 +415,115 @@ exports.writeListing = function(req, res) {
 			}
 		});
 	});	
+}
+
+exports.addListingToAccount = function(req, res, next) {
+	db.collection('employerusers', function(err, collection) {	
+		collection.update( { '_id': new BSON.ObjectID(req.body.listing.employer_id) }, { $addToSet: { 'listings': req.listing_id } }, function(err, result) {
+			next();
+		});
+	});		
+}
+
+exports.addListingToProfile = function(req, res) {
+	db.collection('employers', function(err, collection) {	
+		collection.update( { 'employer_id': new BSON.ObjectID(req.body.listing.employer_id) }, { $addToSet: { 'listings': req.listing_id } }, function(err, result) {
+			res.send({
+				'status': "created",
+				'error': null
+			});	
+		});
+	});
+}
+
+exports.firstSync = function(req, res, next) {
+	var st = req.body.sync_type;
+	var sync_data = req.body.sync_data;
+	if(st == "profile") {
+		db.collection('employerusers', function(err, collection) {
+			collection.findAndModify( { '_id': new BSON.ObjectID(sync_data._id) }, [], { $set: { 'address': sync_data.address, 'profile.phone': sync_data.phone, 'profile.phone_formatted': sync_data.phone_formatted, 'profile.about': sync_data.profile.about, 'profile.tags': sync_data.profile.tags, 'profile.files': sync_data.profile.files } }, {remove:false, new:true}, function(err, result) {
+				if(err) {
+					res.send({
+						'sync_status': 'error',
+						'sync_error': 'mongo err on sync 1 - ' + err 
+					});
+				} else {
+					if(result) {
+						req.listings_arr = result.listings;
+					}
+					next();
+				}
+			});
+		});
+	}
+}
+
+exports.secondSync = function(req, res, next) {
+	var st = req.body.sync_type;
+	var sync_data = req.body.sync_data;
+	var listarr = req.listings_arr;
+	var locationob = {
+		'city': sync_data.address.city,
+		'state': sync_data.address.state	
+	}
+	if(st == "profile") {
+		if(typeof listarr == "object") {
+			db.collection('jobs', function(err, collection) {
+				collection.update( { '_id': { $in: listarr } }, { $set: { 'display.description.about': sync_data.profile.about, 'location': locationob, 'display.picture': sync_data.profile.files.profile_pic } }, { multi: true }, function(err, result) {
+					if(err) {
+						res.send({
+							'sync_status': 'error',
+							'sync_error': 'mongo err on sync 2 - ' + err + '. Fatal error, please contact customer service.'
+						});	
+					} else {
+						next();
+					}
+				});
+			});
+		} else {
+			next();	
+		}
+	}
+}
+
+exports.thirdSync = function(req, res, next) {
+	var st = req.body.sync_type;
+	var sync_data = req.body.sync_data;
+	if(st == "profile") {
+		db.collection('employers', function(err, collection) {
+			collection.update( { 'employer_id': new BSON.ObjectID(sync_data._id) }, { $set: { 'address': sync_data.address, 'profile.phone': sync_data.phone, 'profile.phone_formatted': sync_data.phone_formatted, 'profile.about': sync_data.profile.about, 'profile.tags': sync_data.profile.tags, 'profile.files': sync_data.profile.files } }, function(err, result) {
+				if(err) {
+					res.send({
+						'sync_status': 'error',
+						'sync_error': 'mongo err on sync 3 - ' + err + '. Fatal error, please contact customer service.'
+					});	
+				} else {
+					next();
+				}
+			});
+		});
+	}
+}
+
+exports.syncOK = function(req, res) {
+	res.send({
+		'sync_status': 'ok'
+	});
+}
+
+exports.fetchListings = function(req, res, next) {
+	var employer_id = req.query.employer_id;
+	if(!employer_id) {
+		res.send([]);
+		return;
+	}
+	db.collection('jobs', function(err, collection) {
+		collection.find( { 'employer_id': employer_id } ).sort( { time_stamp: -1 } ).toArray(function(err, results) {
+			if(err) {
+				items = [];
+			} else {
+				res.json(results);
+			}
+		});
+	});
 }

@@ -34,10 +34,10 @@ exports.process = function(req, res, next) {
 			var results = [];
 			items.forEach(function(item) { //iterate over the items array
 				delete item['_id'];
-				var s = JSON.stringify(item); //convert each item in items to a string
+				var s = JSON.stringify(item).toLowerCase(); //convert each item in items to a string
 				var matched = true;
 				sarray.forEach(function(qs) { //take the toArray converted query and iterate over it
-					if(s.search(qs) < 0) { //if regex finds the keyword in the item string,
+					if(s.search(qs.toLowerCase()) < 0) { //if regex finds the keyword in the item string,
 						matched = false; //set matched to false
 					}
 				});

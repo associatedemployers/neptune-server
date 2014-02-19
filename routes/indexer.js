@@ -28,59 +28,60 @@ db.open(function(err, db) {
 exports.indexFile = function (req, res, next) {
 	var resm = req.body.account_data.resume;	
 	if(resm) {
-		var path = req.body.account_data.resume.path,
-			path = path.replace("../../", "http://www.aejobs.org:80/dev/"),
-			filename = path.split("/").pop(),
-			ext = req.body.account_data.resume.extension,
-			ext = ext.toString().toLowerCase();
-	}
-	http.get(path, function (fileresponse) {
-		if (fileresponse.statusCode === 200) {
-			fileresponse.pipe(fs.createWriteStream(__dirname + '/../tmp_indexing/' + filename));
-			fileresponse.on('end', function() {
-				path = __dirname + '/../tmp_indexing/' + filename;
-				if(ext == "pdf" || ext == "doc" || ext == "docx" || ext == "rtf" || ext == "txt") {
-					if(ext == "rtf") {
-						textract("application/msword", path, function(err, text) {
-							if(err) {
-								console.log(err);
-								req.indexed = false;
-								req.extractedText = "Error: " + err;
+		if(resm.path) {
+			var path = req.body.account_data.resume.path,
+				path = path.replace("../../", "http://www.aejobs.org:80/dev/"),
+				filename = path.split("/").pop(),
+				ext = req.body.account_data.resume.extension,
+				ext = ext.toString().toLowerCase();
+			http.get(path, function (fileresponse) {
+				if (fileresponse.statusCode === 200) {
+					fileresponse.pipe(fs.createWriteStream(__dirname + '/../tmp_indexing/' + filename));
+					fileresponse.on('end', function() {
+						path = __dirname + '/../tmp_indexing/' + filename;
+						if(ext == "pdf" || ext == "doc" || ext == "docx" || ext == "rtf" || ext == "txt") {
+							if(ext == "rtf") {
+								textract("application/msword", path, function(err, text) {
+									if(err) {
+										console.log(err);
+										req.indexed = false;
+										req.extractedText = "Error: " + err;
+									} else {
+										req.indexed = true;
+										req.extractedText = text;
+									}
+									fs.unlink(path);
+									next();
+								});
 							} else {
-								req.indexed = true;
-								req.extractedText = text;
+								textract(path, function(err, text) {
+									if(err) {
+										console.log(err);
+										req.indexed = false;
+										req.extractedText = "Error: " + err;
+									} else {
+										req.indexed = true;
+										req.extractedText = text;
+									}
+									fs.unlink(path);
+									next();
+								});
 							}
+						} else {
+							req.indexed = false;
+							req.extractedText = "Error: User resume file type not supported. (." + ext + ")";
 							fs.unlink(path);
 							next();
-						});
-					} else {
-						textract(path, function(err, text) {
-							if(err) {
-								console.log(err);
-								req.indexed = false;
-								req.extractedText = "Error: " + err;
-							} else {
-								req.indexed = true;
-								req.extractedText = text;
-							}
-							fs.unlink(path);
-							next();
-						});
-					}
+						}
+					});
 				} else {
+					console.error('The address is unavailable. (%d)', fileresponse.statusCode);
 					req.indexed = false;
-					req.extractedText = "Error: User resume file type not supported. (." + ext + ")";
-					fs.unlink(path);
-					next();
+					req.extractedText = "Error: " + fileresponse.statusCode;
 				}
 			});
-		} else {
-			console.error('The address is unavailable. (%d)', fileresponse.statusCode);
-			req.indexed = false;
-			req.extractedText = "Error: " + fileresponse.statusCode;
 		}
-	});
-		
+	}	
 }
 
 exports.saveResume = function (req, res, next) {
