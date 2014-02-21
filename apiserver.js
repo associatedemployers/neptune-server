@@ -22,6 +22,7 @@ login = require('./routes/login'),
 searchdb = require('./routes/searchdb'),
 indexer = require('./routes/indexer'),
 transaction = require('./routes/transaction'),
+cronjobs = require('./util/cronjobs'),
 
 mailtemplates = require('./config/mail.templates'),
 token = require('./config/tokens');
@@ -157,6 +158,11 @@ api.get('/employer/verify-account', auth.get.guest, employers.verifyAccount, emp
 
 api.post('/employer/sync', auth.post.employer, employers.geocode, employers.firstSync, employers.secondSync, employers.thirdSync, employers.syncOK);
 api.get('/employer/account/listings', auth.get.employer, employers.fetchListings);
+api.get('/employer/account/orders', auth.get.employer, employers.fetchOrders);
+api.get('/employer/account/saved-cards', auth.get.employer, employers.fetchCards);
+api.get('/employer/account/saved-cards/delete', auth.get.employer, employers.deleteCard);
+
+api.get('/account/change-password', auth.get.guest, users.changePassword);
 
 //login server
 api.post('/login', auth.post.guest, login.checkemp, login.checkusr);//function complete
@@ -164,7 +170,7 @@ api.get('/ie/login', auth.get.guest, transformreq, login.checkemp, login.checkus
 
 //search server
 api.get('/search', auth.get.guest, searchdb.process, searchdb.sendResults); //function complete
-
+api.get('/autocomplete', auth.get.guest, searchdb.autocomplete, searchdb.sendResults);
 
 //Load Test Verfication
 api.get('/loaderio-32d4c71c2728a25b39d9f6cc89a715d0/', function(req, res){

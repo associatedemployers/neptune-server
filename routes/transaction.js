@@ -126,6 +126,8 @@ exports.process = function(req, res, next) {
 exports.storeOrder = function(req, res, next) {
 	var order = req.query.order;
 	order.orderResult = req.transactionResult;
+	req.savingCard = order.card.save;
+	delete order.card;
 	db.collection('orders', function(err, collection) {	
 		collection.insert(order, {safe:true}, function(err, result) {
 			if(err) {
@@ -142,7 +144,7 @@ exports.storeOrder = function(req, res, next) {
 
 exports.storeCard = function(req, res) {
 	var order = req.query.order;
-	if(order.card.save) {
+	if(req.savingCard) {
 		db.collection('employerusers', function(err, collection) {	
 			collection.update( { '_id': new BSON.ObjectID(order.employer_id) }, { $addToSet: { 'stored_cards': { 'token': req.transactionResult.transaction.creditCard.token, 'masked_number': req.transactionResult.transaction.creditCard.maskedNumber } } }, function(err, result) {
 				res.send({

@@ -85,3 +85,56 @@ exports.fetchByID = function(req, res) {
 	console.log("Opened jobs fetchByID() function in users route.");
 }
 
+exports.changePassword = function(req, res) {
+	var type = req.query.type,
+		id = req.query.account_id,
+		newPassword = req.query.new_password,
+		oldPassword = req.query.old_password,
+		email = req.query.email;
+	var collc = (type == "employer") ? 'employerusers' : 'users';
+	if(!type || !id || !newPassword || !oldPassword || !email) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing fields'
+		});
+		return
+	}
+	db.collection(collc, function(err, collection) {
+		collection.update({'_id': new BSON.ObjectID(id), 'login.email': email, 'login.password': oldPassword}, { $set: { 'login.password': newPassword } }, function(err, numUpdated) {
+			if(err) {
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else if(numUpdated < 1) {
+				res.json({
+					'status': 'in error',
+					'error': "Couldn't find account."
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
+			}
+		});
+	});
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

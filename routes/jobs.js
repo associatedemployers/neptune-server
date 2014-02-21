@@ -29,7 +29,7 @@ db.open(function(err, db) {
 
 exports.fetchFeatured = function(req, res) {
 	 db.collection('jobs', function(err, collection) {
-		collection.find({featured: "true"}).toArray(function(err, items) {
+		collection.find({featured: "true"}).sort( { time_stamp: -1 } ).toArray(function(err, items) {
 			if(err) {
 				res.send("error: " + err);	
 			} else {

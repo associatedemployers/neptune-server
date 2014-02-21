@@ -35,7 +35,7 @@ db.open(function(err, db) {
 
 exports.fetchFeatured = function(req, res) {
 	 db.collection('employers', function(err, collection) {
-		collection.find({featured: true}).toArray(function(err, items) {
+		collection.find({featured: true}).sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
 				res.jsonp(items);
 			} else {
@@ -274,7 +274,7 @@ exports.addEmployerListing = function(req, res) {
 
 exports.fetchAllTags = function(req, res) {
 	db.collection('employers', function(err, collection) {
-		collection.find({}, { "profile.tags": 1, _id: 0 }).toArray(function(err, items) {
+		collection.find({ 'listings': { $exists: true } }, { "profile.tags": 1, _id: 0 }).toArray(function(err, items) {
 			if(err) {
 				res.send(err);
 				return;
@@ -299,7 +299,7 @@ exports.fetchByTag = function(req, res) {
 	var tags = req.query.tags;
 	console.log(JSON.stringify(tags));
 	db.collection('employers', function(err, collection) {
-		collection.find({'profile.tags': { $all: tags } }).toArray(function(err, items) {
+		collection.find({'listings': { $exists: true }, 'profile.tags': { $all: tags } }).toArray(function(err, items) {
 			if(err) {
 				res.send(err);
 				return;
@@ -317,7 +317,7 @@ exports.fetchByState = function(req, res, next) {
 		return;	
 	}
 	db.collection('employers', function(err, collection) {
-		collection.find({ "address.state": state }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find({'listings': { $exists: true }, "address.state": state }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
 			if(err) {
 				res.send(err);
 				return;
@@ -520,9 +520,69 @@ exports.fetchListings = function(req, res, next) {
 	db.collection('jobs', function(err, collection) {
 		collection.find( { 'employer_id': employer_id } ).sort( { time_stamp: -1 } ).toArray(function(err, results) {
 			if(err) {
-				items = [];
+				res.send([]);
 			} else {
 				res.json(results);
+			}
+		});
+	});
+}
+
+exports.fetchOrders = function(req, res, next) {
+	var employer_id = req.query.employer_id;
+	if(!employer_id) {
+		res.send([]);
+		return;
+	}
+	db.collection('orders', function(err, collection) {
+		collection.find( { 'employer_id': employer_id } ).sort( { time_stamp: -1 } ).toArray(function(err, results) {
+			if(err) {
+				res.send([]);
+			} else {
+				res.json(results);
+			}
+		});
+	});
+}
+
+exports.fetchCards = function(req, res, next) {
+	var employer_id = req.query.employer_id;
+	if(!employer_id) {
+		res.send([]);
+		return;
+	}
+	db.collection('employerusers', function(err, collection) {
+		collection.find({ '_id': new BSON.ObjectID(employer_id) }, { fields: { '_id': 0, 'stored_cards': 1 } }).toArray(function(err, results) {
+			if(err) {
+				res.send([]);
+			} else {
+				res.json(results[0].stored_cards);
+			}
+		});
+	});
+}
+
+exports.deleteCard = function(req, res, next) {
+	var employer_id = req.query.employer_id;
+	var card = req.query.card;
+	if(!employer_id || !card) {
+		res.json({
+			"status": "in error",
+			"error": "No card sent in request."
+		});
+		return;
+	}
+	db.collection('employerusers', function(err, collection) {
+		collection.update({ '_id': new BSON.ObjectID(employer_id) }, { $pull: { 'stored_cards': { 'token': card } } }, function(err, result) {
+			if(err) {
+				res.json({
+					"status": "in error",
+					"error": err
+				});
+			} else {
+				res.json({
+					"status": "ok"
+				});
 			}
 		});
 	});
