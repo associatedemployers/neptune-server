@@ -23,6 +23,7 @@ searchdb = require('./routes/searchdb'),
 indexer = require('./routes/indexer'),
 transaction = require('./routes/transaction'),
 cronjobs = require('./util/cronjobs'),
+analytics = require('./util/analytics'),
 
 mailtemplates = require('./config/mail.templates'),
 token = require('./config/tokens');
@@ -126,10 +127,10 @@ XXXXXXXXXXXXXXXXXXXXXXXXXX */
 api.get('/jobs', auth.get.guest, jobs.fetchAll); //function complete
 api.get('/jobs/:id', auth.get.guest, jobs.fetchByID); //function complete
 api.get('/job/save/:id', auth.get.employer, jobs.saveListing);
+api.get('/job/apply/:id', auth.get.guest, jobs.newApplication, users.newApplication, users.fetchEmail, jobs.fetchEmail, jobs.fetchInfo, jobs.sendNotifications);
 api.post('/jobs', auth.post.employer, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile); 
 api.get('/ie/job/add', auth.get.employer, transformreq, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile);
-/*api.put('/jobs', auth.employer, employers.updateJob);
-api.delete('/jobs', auth.employer, jobs.deleteJob);*/
+/*api.delete('/jobs', auth.employer, jobs.deleteJob);*/ //Don't know if we will use this one?...
 api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured); //function complete
 
 //users

@@ -120,21 +120,43 @@ exports.changePassword = function(req, res) {
 	});
 }
 
+exports.newApplication = function(req, res, next) {
+	var id = req.params.id;
+	var user_data = req.query.user_data;
+	var time_stamp = req.query.time_stamp;
+	
+	var application = {
+		'job_id': id,
+		'time_stamp': time_stamp
+	}
+	
+	db.collection('users', function(err, collection) {
+		collection.findAndModify({'_id': new BSON.ObjectID(user_data._id)}, [], { $addToSet: { 'applications': application } }, function(err, result) {
+			if(err) {
+				res.json({
+					'status': 'Mongo Error: ' + err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
+				next(); //transport to notification processes!
+			}
+		});
+	});
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+exports.fetchEmail = function(req, res, next) {
+	var id = req.params.user_data._id;
+	
+	db.collection('users', function(err, collection) {
+		collection.find({'_id':new BSON.ObjectID(id)}).toArray(function(err, results) {
+			if(err) {
+				console.log(err);
+			} else {
+				req.user_email = results[0].login.email;
+				next();
+			}
+		});
+	});
+}
