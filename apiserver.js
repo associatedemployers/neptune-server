@@ -23,6 +23,7 @@ searchdb = require('./routes/searchdb'),
 indexer = require('./routes/indexer'),
 transaction = require('./routes/transaction'),
 cronjobs = require('./util/cronjobs'),
+notifications = require('./util/notifications'),
 analytics = require('./util/analytics'),
 
 mailtemplates = require('./config/mail.templates'),
@@ -127,7 +128,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXX */
 api.get('/jobs', auth.get.guest, jobs.fetchAll); //function complete
 api.get('/jobs/:id', auth.get.guest, jobs.fetchByID); //function complete
 api.get('/job/save/:id', auth.get.employer, jobs.saveListing);
-api.get('/job/apply/:id', auth.get.guest, jobs.newApplication, users.newApplication, users.fetchEmail, jobs.fetchEmail, jobs.fetchInfo, jobs.sendNotifications);
+api.get('/job/apply/:id', auth.get.guest, jobs.newApplication, users.newApplication, users.fetchEmail, jobs.fetchEmail, jobs.fetchInfo, notifications.newApplication, analytics.logApplication);
 api.post('/jobs', auth.post.employer, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile); 
 api.get('/ie/job/add', auth.get.employer, transformreq, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile);
 /*api.delete('/jobs', auth.employer, jobs.deleteJob);*/ //Don't know if we will use this one?...
@@ -157,6 +158,8 @@ api.delete('/employers', auth.employer, jobs.deleteEmployer);*/
 api.get('/featured/employers', auth.get.guest, employers.fetchFeatured); //function complete
 api.get('/employer/verify-account', auth.get.guest, employers.verifyAccount, employers.writeAccount, employers.writeListing); //function complete
 
+api.get('/employer/account/applications', auth.get.employer, employers.fetchApplications);
+/*api.get('/employer/account/applicant-labels/save', auth.get.employer, employers.syncLabels);*/
 api.post('/employer/sync', auth.post.employer, employers.geocode, employers.firstSync, employers.secondSync, employers.thirdSync, employers.syncOK);
 api.get('/employer/account/listings', auth.get.employer, employers.fetchListings);
 api.get('/employer/account/orders', auth.get.employer, employers.fetchOrders);

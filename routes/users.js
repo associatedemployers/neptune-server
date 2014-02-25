@@ -147,7 +147,7 @@ exports.newApplication = function(req, res, next) {
 }
 
 exports.fetchEmail = function(req, res, next) {
-	var id = req.params.user_data._id;
+	var id = req.query.user_data._id;
 	
 	db.collection('users', function(err, collection) {
 		collection.find({'_id':new BSON.ObjectID(id)}).toArray(function(err, results) {

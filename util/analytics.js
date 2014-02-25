@@ -24,3 +24,13 @@ db.open(function(err, db) {
 		console.log(exception['1001']);
 	}
 });
+
+exports.logApplication = function () {
+	db.collection('analytics', function (err, collection) {
+		collection.update({'type': 'applications'}, { $inc: { 'data': 1 } }, function (err, result) {
+			if(err) {
+				console.log(err);
+			}
+		});
+	});
+}

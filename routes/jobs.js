@@ -1,9 +1,7 @@
 // Jobs Route
 console.log("STARTUP: Loaded jobs route.");
 
-var mongo = require('mongodb'),
-	fs = require('fs'),
-	http = require('follow-redirects').http;
+var mongo = require('mongodb');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Jobs Collection Does Not Exist.",
@@ -151,7 +149,8 @@ exports.newApplication = function(req, res, next) {
 	
 	var applicant_data = {
 		'applicant': user_data,
-		'resume': resume
+		'resume': resume,
+		'cover_letter': req.query.cover_letter
 	}
 	
 	db.collection('jobs', function(err, collection) {
@@ -161,7 +160,21 @@ exports.newApplication = function(req, res, next) {
 					'status': 'Mongo Error: ' + err
 				});
 			} else {
-				next();
+				var dupe_err = false;
+				if(result.applicants) {
+					result.applicants.forEach(function(application) {
+						if(application.applicant._id == applicant_data.applicant._id) {
+							dupe_err = true;	
+						}
+					});
+				}
+				if(dupe_err) {
+					res.json({
+						'status': 'Application already exists. You cannot apply twice.'
+					});
+				} else {
+					next();
+				}
 			}
 		});
 	});
@@ -194,57 +207,5 @@ exports.fetchInfo = function(req, res, next) {
 				next();
 			}
 		});
-	});
-}
-
-exports.sendNotifications = function(req, res, next) {
-	var transport = nodemailer.createTransport("sendmail");
-	var job_info = req.job_info;
-	var user_data = req.query.user_data;
-	var resume = req.query.resume;
-	
-	var user_template = mailtemplate.jobNotification_user(user_data.name, job_info.display.title);
-	var employer_template = mailtemplate.jobNotification_employer(user_data.name, job_info);
-	
-	transport.sendMail({ //send the user notification
-		from: "notifications@aejobs.org",
-		to: req.user_email,
-		subject: "Good luck " + user_data.name.first + "!",
-		text: user_template.plain,
-		html: user_template.html
-	}, function(error, response){
-		if(error){
-			console.log(error);
-		}
-	});
-	var path = req.query.resume,
-		path = path.replace("../../", "http://www.aejobs.org:80/dev/"),
-		filename = path.split("/").pop();
-	http.get(path, function (fileresponse) {
-		if (fileresponse.statusCode === 200) {
-			fileresponse.pipe(fs.createWriteStream(__dirname + '/../emailed_resumes/' + filename));
-			fileresponse.on('end', function() {
-				path = __dirname + '/../emailed_resumes/' + filename;
-				transport.sendMail({
-					from: "notifications@aejobs.org",
-					to: req.notification_email,
-					subject: "New Application for " + job_info.display.title + ".",
-					text: employer_template.plain,
-					html: employer_template.html,
-					attachments: [
-						{
-							filePath: path
-						}
-					]
-				}, function(error, response){
-					if(error){
-						console.log(error);
-					}
-					transport.close(); // shut down the connection pool, no more messages
-				});
-			});
-		} else {
-			console.error('The address is unavailable. (%d)', fileresponse.statusCode);
-		}
 	});
 }

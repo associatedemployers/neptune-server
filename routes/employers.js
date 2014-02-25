@@ -587,3 +587,29 @@ exports.deleteCard = function(req, res, next) {
 		});
 	});
 }
+
+exports.fetchApplications = function(req, res, next) {
+	var employer_id = req.query.employer_id;
+	if(!employer_id) {
+		res.json({
+			"status": "in error",
+			"error": "No id sent in request."
+		});
+		return;
+	}
+	console.log(employer_id);
+	db.collection('jobs', function(err, collection) {
+		collection.find({ 'employer_id': employer_id, 'applicants': { $exists: true } }).sort( { 'time_stamp': -1 } ).toArray(function (err, results) {
+			if(err) {
+				res.json({
+					"status": "in error",
+					"error": err
+				});
+			} else {
+				console.log(err);
+				console.log(results);
+				res.json(results);
+			}
+		});
+	});
+}
