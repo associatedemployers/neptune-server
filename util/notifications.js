@@ -32,18 +32,12 @@ exports.newApplication = function (req, res, next) {
 	var path = req.query.resume,
 		path = path.replace("../../", "http://www.aejobs.org:80/dev/"),
 		filename = path.split("/").pop();
-	console.log(path);
 	http.get(path, function (fileresponse) {
-		console.log('fetching');
 		if (fileresponse.statusCode === 200) {
-			console.log('status ok');
 			fileresponse.pipe(fs.createWriteStream(__dirname + '/../emailed_resumes/' + filename));
 			fileresponse.on('end', function() {
-				console.log('stream ended');
 				path = __dirname + '/../emailed_resumes/' + filename;
-				console.log('creating nodemailer transport');
 				var transport = nodemailer.createTransport("sendmail");
-				console.log('created.');
 				transport.sendMail({ //send the user notification
 					from: "notifications@aejobs.org",
 					to: req.user_email,
@@ -52,9 +46,8 @@ exports.newApplication = function (req, res, next) {
 					html: user_template.html
 				}, function(error, response){
 					if(error){
-						console.log(error);
+						console.error(error);
 					} else {
-						console.log('sent user email');
 						transport.sendMail({
 							from: "notifications@aejobs.org",
 							to: req.employer_email,
@@ -68,15 +61,9 @@ exports.newApplication = function (req, res, next) {
 							]
 						}, function(error, response){
 							if(error){
-								console.log(error);
+								console.error(error);
 							}
-							console.log('employer email: ', req.employer_email);
-							console.log('user email: ', req.user_email);
-							console.log('sent employer email, next line is response.');
-							console.log(response);
-							console.log('shutting down transport');
 							transport.close(); // shut down the connection pool, no more messages
-							console.log('transport shut down');
 							next();
 						});	
 					}
@@ -84,6 +71,36 @@ exports.newApplication = function (req, res, next) {
 			});
 		} else {
 			console.error('The address is unavailable. (%d)', fileresponse.statusCode);
+		}
+	});
+}
+
+exports.sendExportedApplication = function(req, res, next) {
+	var ao = req.query.applicant;
+	var emailTo = req.query.email;
+	var employer_id = req.query.employer_id;
+	if(!ao || !emailTo || !employer_id) {
+		res.json({
+			'status': 'Missing a field.'
+		});
+		return;
+	}
+	var template = mailtemplate.exportApplication(ao, employer_id);
+	var transport = nodemailer.createTransport("sendmail");
+	transport.sendMail({ //send the user notification
+		from: "notifications@aejobs.org",
+		to: emailTo,
+		subject: "Exported Application: " + ao.applicant.name.first + " " + ao.applicant.name.last,
+		text: template.plain,
+		html: template.html
+	}, function(error, response) {
+		if(error){
+			console.error(error);
+		} else {
+			transport.close(); // shut down the connection pool, no more messages
+			res.json({
+				'status': 'ok'
+			});
 		}
 	});
 }

@@ -159,12 +159,14 @@ api.get('/featured/employers', auth.get.guest, employers.fetchFeatured); //funct
 api.get('/employer/verify-account', auth.get.guest, employers.verifyAccount, employers.writeAccount, employers.writeListing); //function complete
 
 api.get('/employer/account/applications', auth.get.employer, employers.fetchApplications);
-/*api.get('/employer/account/applicant-labels/save', auth.get.employer, employers.syncLabels);*/
+api.get('/employer/account/applicant-labels/save', auth.get.employer, employers.saveLabels);
 api.post('/employer/sync', auth.post.employer, employers.geocode, employers.firstSync, employers.secondSync, employers.thirdSync, employers.syncOK);
 api.get('/employer/account/listings', auth.get.employer, employers.fetchListings);
 api.get('/employer/account/orders', auth.get.employer, employers.fetchOrders);
 api.get('/employer/account/saved-cards', auth.get.employer, employers.fetchCards);
 api.get('/employer/account/saved-cards/delete', auth.get.employer, employers.deleteCard);
+
+api.get('/employer/account/export-application/email', auth.get.employer, notifications.sendExportedApplication);
 
 api.get('/account/change-password', auth.get.guest, users.changePassword);
 

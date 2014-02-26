@@ -597,7 +597,6 @@ exports.fetchApplications = function(req, res, next) {
 		});
 		return;
 	}
-	console.log(employer_id);
 	db.collection('jobs', function(err, collection) {
 		collection.find({ 'employer_id': employer_id, 'applicants': { $exists: true } }).sort( { 'time_stamp': -1 } ).toArray(function (err, results) {
 			if(err) {
@@ -611,5 +610,26 @@ exports.fetchApplications = function(req, res, next) {
 				res.json(results);
 			}
 		});
+	});
+}
+
+exports.saveLabels = function(req, res, next) {
+	var ido = req.query.ido;
+	var employer_id = req.query.employer_id;
+	var labels = req.query.labels;
+	db.collection('jobs', function (err, collection) {
+		collection.update({ 'employer_id': employer_id, '_id': new BSON.ObjectID(ido.listing_id), 'applicants': { $elemMatch: { 'applicant._id': ido.applicant_id } } }, { $set: { 'applicants.$.labels': labels } }, function (err, numUpdated) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err'
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
+			}
+		})
 	});
 }

@@ -154,27 +154,30 @@ exports.newApplication = function(req, res, next) {
 	}
 	
 	db.collection('jobs', function(err, collection) {
-		collection.findAndModify({'_id':new BSON.ObjectID(id)}, [], { $addToSet: { 'applicants': applicant_data } }, function(err, result) {
-			if(err) {
-				res.json({
-					'status': 'Mongo Error: ' + err
+		collection.find({ '_id': new BSON.ObjectID(id)}).toArray(function(error, results) {
+			var dupe_err = false;
+			if(results[0].applicants) {
+				results[0].applicants.forEach(function(application) {
+					if(application.applicant._id == applicant_data.applicant._id) {
+						dupe_err = true;
+					}
 				});
+			}
+			if(dupe_err) {
+				res.json({
+					'status': 'Application already exists. You cannot apply twice.'
+				});
+				return;
 			} else {
-				var dupe_err = false;
-				if(result.applicants) {
-					result.applicants.forEach(function(application) {
-						if(application.applicant._id == applicant_data.applicant._id) {
-							dupe_err = true;	
-						}
-					});
-				}
-				if(dupe_err) {
-					res.json({
-						'status': 'Application already exists. You cannot apply twice.'
-					});
-				} else {
-					next();
-				}
+				collection.findAndModify({'_id':new BSON.ObjectID(id)}, [], { $addToSet: { 'applicants': applicant_data } }, function(err, result) {
+					if(err) {
+						res.json({
+							'status': 'Mongo Error: ' + err
+						});
+					} else {
+						next();
+					}
+				});
 			}
 		});
 	});
