@@ -22,6 +22,7 @@ login = require('./routes/login'),
 searchdb = require('./routes/searchdb'),
 indexer = require('./routes/indexer'),
 transaction = require('./routes/transaction'),
+administration = require('./routes/administration'),
 cronjobs = require('./util/cronjobs'),
 notifications = require('./util/notifications'),
 analytics = require('./util/analytics'),
@@ -177,6 +178,12 @@ api.get('/ie/login', auth.get.guest, transformreq, login.checkemp, login.checkus
 //search server
 api.get('/search', auth.get.guest, searchdb.process, searchdb.sendResults); //function complete
 api.get('/autocomplete', auth.get.guest, searchdb.autocomplete, searchdb.sendResults);
+
+//administration
+api.get('/admin/login', auth.get.guest, administration.login);
+api.get('/admin/analytics/quick', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.sendQuick);
+api.get('/admin/analytics/full', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.countOrders, analytics.countEmployers, analytics.countActiveEmployers, analytics.countUsers, analytics.countListings, analytics.countApplications, analytics.sendFull);
+api.get('/admin/analytics/advanced', auth.get.admin, analytics.getDS, analytics.getCSemployers, analytics.getCSemployerusers, analytics.getCSjobs, analytics.getCSresumes, analytics.getCSusers, analytics.getCSorders, analytics.sendAdvanced);
 
 //Load Test Verfication
 api.get('/loaderio-32d4c71c2728a25b39d9f6cc89a715d0/', function(req, res){
