@@ -181,9 +181,15 @@ api.get('/autocomplete', auth.get.guest, searchdb.autocomplete, searchdb.sendRes
 
 //administration
 api.get('/admin/login', auth.get.guest, administration.login);
+api.get('/admin/add-user', auth.get.admin, administration.checkExistingEmail, administration.createNewUser, notifications.sendNewAdminUser);
+api.get('/admin/edit-user', auth.get.admin, administration.editAdminUser);
+api.get('/admin/delete-user', auth.get.admin, administration.deleteAdminUser);
+api.get('/admin/fetch-administration-users', auth.get.admin, administration.fetchAdminUsers);
 api.get('/admin/analytics/quick', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.sendQuick);
 api.get('/admin/analytics/full', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.countOrders, analytics.countEmployers, analytics.countActiveEmployers, analytics.countUsers, analytics.countListings, analytics.countApplications, analytics.sendFull);
 api.get('/admin/analytics/advanced', auth.get.admin, analytics.getDS, analytics.getCSemployers, analytics.getCSemployerusers, analytics.getCSjobs, analytics.getCSresumes, analytics.getCSusers, analytics.getCSorders, analytics.sendAdvanced);
+api.get('/admin/fetch-announcements', auth.get.admin, administration.fetchAnnouncements);
+api.get('/admin/activate', auth.get.guest, administration.activateAccount);
 
 //Load Test Verfication
 api.get('/loaderio-32d4c71c2728a25b39d9f6cc89a715d0/', function(req, res){

@@ -104,3 +104,21 @@ exports.sendExportedApplication = function(req, res, next) {
 		}
 	});
 }
+
+exports.sendNewAdminUser = function (req, res, next) {
+	var template = mailtemplate.newAdminUser(req.query.user, req.verfurl);
+	var transport = nodemailer.createTransport("sendmail");
+	transport.sendMail({
+		from: "no-reply@aejobs.org",
+		to: req.query.user.login.email,
+		subject: "Please activate your administrative account",
+		text: template.plain,
+		html: template.html
+	}, function(error, response) {
+		if(error){
+			console.error(error);
+		} else {
+			transport.close(); // shut down the connection pool, no more messages
+		}
+	});
+}
