@@ -160,3 +160,26 @@ exports.fetchEmail = function(req, res, next) {
 		});
 	});
 }
+
+exports.fetchPageContent = function (req, res, next) {
+	var page = req.query.page;
+	if(!page) {
+		res.status(404).json({
+			'status': 'error',
+			'error': 'no page'
+		});
+	}
+	db.collection('content', function(err, collection) {
+		collection.findOne({'page': page}, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.status(500).json({
+					'status': 'error',
+					'error': err
+				});
+			} else {
+				res.json(result);
+			}
+		});
+	});
+}

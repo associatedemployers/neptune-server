@@ -223,3 +223,130 @@ exports.fetchAnnouncements = function (req, res, next) {
 		});
 	});
 }
+
+exports.createAnnouncement = function (req, res, next) {
+	var perms = req.query.perms;
+	var announcement = req.query.announcement;
+	if(!perms || !announcement || !announcement.title || !announcement.text || !announcement.creator || !announcement.time_stamp) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	} else if(!perms.create.announcements) {
+		res.json({
+			'status': 'in error',
+			'error': 'You do not have the correct permissions to do that.'
+		});
+		return;
+	}
+	db.collection('announcements', function(err, collection) {
+		collection.insert(announcement, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
+			}
+		});
+	});
+}
+
+exports.removeAnnouncement = function (req, res, next) {
+	var perms = req.query.perms;
+	var id = req.query.id;
+	if(!perms || !id) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	} else if(!perms.create.announcements) {
+		res.json({
+			'status': 'in error',
+			'error': 'You do not have the correct permissions to do that.'
+		});
+		return;
+	}
+	db.collection('announcements', function(err, collection) {
+		collection.remove({ '_id': new BSON.ObjectID(id) }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
+			}
+		});
+	});
+}
+
+exports.fetchAppdata = function (req, res, next) {
+	db.collection('announcements', function (err, collection) {
+		collection.count(function(err, count) {
+			if(err) {
+				console.error(err);
+			}
+			res.json({
+				'announcements': count
+			});
+		});
+	});
+}
+
+exports.fetchContent = function (req, res, next) {
+	db.collection('content', function(err, collection) {
+		collection.find().toArray(function(err, results) {
+			if(err) {
+				console.log(err);
+			}
+			if(results) {
+				res.json(results);
+			} else {
+				res.json([]);
+			}
+		});
+	});
+}
+
+exports.updateContent = function (req, res, next) {
+	var perms = req.query.perms;
+	var update = req.query.update;
+	if(!perms || !update || !update.page) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	} else if(!perms.edit.content) {
+		res.json({
+			'status': 'in error',
+			'error': 'You do not have the correct permissions to do that.'
+		});
+		return;
+	}
+	db.collection('content', function(err, collection) {
+		collection.findAndModify({ 'page': update.page }, [], { $set: { 'content': update.content } }, { remove: false, new: true }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
+			}
+		});
+	});
+}

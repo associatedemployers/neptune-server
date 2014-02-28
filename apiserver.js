@@ -125,6 +125,8 @@ var auth = {
 Route Controllers
 XXXXXXXXXXXXXXXXXXXXXXXXXX */
 
+api.get('/fetch-page-content', auth.get.guest, users.fetchPageContent); //simple fetch content
+
 //jobs
 api.get('/jobs', auth.get.guest, jobs.fetchAll); //function complete
 api.get('/jobs/:id', auth.get.guest, jobs.fetchByID); //function complete
@@ -188,7 +190,12 @@ api.get('/admin/fetch-administration-users', auth.get.admin, administration.fetc
 api.get('/admin/analytics/quick', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.sendQuick);
 api.get('/admin/analytics/full', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.countOrders, analytics.countEmployers, analytics.countActiveEmployers, analytics.countUsers, analytics.countListings, analytics.countApplications, analytics.sendFull);
 api.get('/admin/analytics/advanced', auth.get.admin, analytics.getDS, analytics.getCSemployers, analytics.getCSemployerusers, analytics.getCSjobs, analytics.getCSresumes, analytics.getCSusers, analytics.getCSorders, analytics.sendAdvanced);
+api.get('/admin/fetch-appdata', auth.get.admin, administration.fetchAppdata);
 api.get('/admin/fetch-announcements', auth.get.admin, administration.fetchAnnouncements);
+api.get('/admin/create-announcement', auth.get.admin, administration.createAnnouncement);
+api.get('/admin/remove-announcement', auth.get.admin, administration.removeAnnouncement);
+api.get('/admin/fetch-content', auth.get.admin, administration.fetchContent);
+api.get('/admin/update-content', auth.get.admin, administration.updateContent);
 api.get('/admin/activate', auth.get.guest, administration.activateAccount);
 
 //Load Test Verfication
