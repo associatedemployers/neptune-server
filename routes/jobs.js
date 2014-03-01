@@ -29,7 +29,7 @@ db.open(function(err, db) {
 
 exports.fetchFeatured = function(req, res) {
 	 db.collection('jobs', function(err, collection) {
-		collection.find({featured: "true"}, { fields: { 'applicants': 0 } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find({active: true, featured: "true"}, { fields: { 'applicants': 0 } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
 			if(err) {
 				res.send("error: " + err);	
 			} else {
@@ -41,7 +41,7 @@ exports.fetchFeatured = function(req, res) {
 
 exports.fetchAll = function(req, res) {
 	 db.collection('jobs', function(err, collection) {
-		collection.find({}, { fields: { 'applicants': 0 } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find({'active': true}, { fields: { 'applicants': 0 } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
 				res.jsonp(items);
 			} else {

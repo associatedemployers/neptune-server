@@ -170,6 +170,7 @@ api.get('/employer/account/saved-cards', auth.get.employer, employers.fetchCards
 api.get('/employer/account/saved-cards/delete', auth.get.employer, employers.deleteCard);
 
 api.get('/employer/account/export-application/email', auth.get.employer, notifications.sendExportedApplication);
+api.get('/employer/account/export-applications/email', auth.get.employer, notifications.sendExportedApplications);
 
 api.get('/account/change-password', auth.get.guest, users.changePassword);
 

@@ -105,6 +105,36 @@ exports.sendExportedApplication = function(req, res, next) {
 	});
 }
 
+exports.sendExportedApplications = function(req, res, next) {
+	var aos = req.query.applicants;
+	var emailTo = req.query.email;
+	var employer_id = req.query.employer_id;
+	if(!aos || !emailTo || !employer_id) {
+		res.json({
+			'status': 'Missing a field.'
+		});
+		return;
+	}
+	var template = mailtemplate.exportApplications(aos, employer_id);
+	var transport = nodemailer.createTransport("sendmail");
+	transport.sendMail({ //send the apps
+		from: "notifications@aejobs.org",
+		to: emailTo,
+		subject: "Exported Applications from aejobs.org",
+		text: template.plain,
+		html: template.html
+	}, function(error, response) {
+		if(error){
+			console.error(error);
+		} else {
+			transport.close(); // shut down the connection pool, no more messages
+			res.json({
+				'status': 'ok'
+			});
+		}
+	});
+}
+
 exports.sendNewAdminUser = function (req, res, next) {
 	var template = mailtemplate.newAdminUser(req.query.user, req.verfurl);
 	var transport = nodemailer.createTransport("sendmail");

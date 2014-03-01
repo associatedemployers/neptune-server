@@ -35,6 +35,16 @@ exports.logApplication = function (req, res, next) {
 	});
 }
 
+exports.logJobExpiration = function (req, res, next) {
+	db.collection('analytics', function (err, collection) {
+		collection.update({'type': 'expired_listings'}, { $inc: { 'data': 1 } }, { upsert: true }, function (err, result) {
+			if(err) {
+				console.log(err);
+			}
+		});
+	});
+}
+
 exports.countApplications = function (req, res, next) {
 	db.collection('analytics', function (err, collection) {
 		collection.find({'type': 'applications'}).toArray(function(err, result) {
