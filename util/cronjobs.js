@@ -4,7 +4,8 @@ var mongo = require('mongodb'),
 	textract = require('textract'),
 	http = require('follow-redirects').http,
 	cronJob = require('cron').CronJob,
-	analytics = require('./analytics');
+	analytics = require('./analytics'),
+	notifications = require('./notifications');
 	
 var Server = mongo.Server,
     Db = mongo.Db,
@@ -87,6 +88,7 @@ function iterateJobs (jobs) {
 		var now = new Date().getTime();
 		if(date < now) {
 			expireJob(job._id);
+			notifications.expiredListing(job.display.title, job.name.company, job.notification_email);
 		}
 	});
 	finishUpExpiration();
@@ -94,7 +96,7 @@ function iterateJobs (jobs) {
 
 function expireJob (id) {
 	db.collection('jobs', function(err, collection) {
-		collection.update({ '_id': new BSON.ObjectID(id) }, { $set: { 'active': false } }, function(err, num) {
+		collection.update({ '_id': new BSON.ObjectID(id) }, { $set: { 'active': false, 'inactive_reason': 'Set unactive via expiry bot' } }, function(err, num) {
 			if(err) {
 				console.error(err);
 			} else if(num) {
@@ -105,6 +107,9 @@ function expireJob (id) {
 			}
 		});
 	});
+	var req = {
+		query: {}
+	}
 }
 
 function finishUpExpiration () { 

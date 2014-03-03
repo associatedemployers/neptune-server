@@ -518,7 +518,7 @@ exports.fetchListings = function(req, res, next) {
 		return;
 	}
 	db.collection('jobs', function(err, collection) {
-		collection.find( { 'employer_id': employer_id } ).sort( { time_stamp: -1 } ).toArray(function(err, results) {
+		collection.find( { 'employer_id': employer_id, 'active': true } ).sort( { time_stamp: -1 } ).toArray(function(err, results) {
 			if(err) {
 				res.send([]);
 			} else {

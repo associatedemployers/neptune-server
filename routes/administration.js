@@ -350,3 +350,90 @@ exports.updateContent = function (req, res, next) {
 		});
 	});
 }
+
+exports.fetchOrders = function (req, res, next) {
+	var perms = req.query.perms;
+	if(!perms) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	} else if(!perms.view.orders) {
+		res.json([]);
+		return;
+	}
+	db.collection('orders', function(err, collection) {
+		collection.find().sort({ 'time_stamp': -1 }).toArray(function(err, results) {
+			if(err) {
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				res.json(results);
+			}
+		});
+	});
+}
+
+exports.fetchListings = function (req, res, next) {
+	var perms = req.query.perms;
+	if(!perms) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	} else if(!perms.view.listings) {
+		res.json([]);
+		return;
+	}
+	db.collection('jobs', function(err, collection) {
+		collection.find().sort({ 'time_stamp': -1 }).toArray(function(err, results) {
+			if(err) {
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				res.json(results);
+			}
+		});
+	});
+}
+
+exports.setListingStatus = function (req, res, next) {
+	var perms = req.query.perms;
+	var id = req.query.id;
+	var active = req.query.active;
+	var inactiveReason = (!active) ? req.query.reason : null;
+	if(!perms || !id || !req.query.email || !req.query.title) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	} else if(!perms.view.listings) {
+		res.json({
+			'status': 'in error',
+			'error': "You don't have permission to do that."
+		});
+		return;
+	}
+	db.collection('jobs', function(err, collection) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(id) }, [], { $set: { 'active': active, 'inactive_reason': inactiveReason } }, { remove: false, new: true }, function(err, result) {
+			if(err) {
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
+				next();
+			}
+		});
+	});
+}

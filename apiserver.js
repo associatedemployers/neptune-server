@@ -196,7 +196,11 @@ api.get('/admin/fetch-announcements', auth.get.admin, administration.fetchAnnoun
 api.get('/admin/create-announcement', auth.get.admin, administration.createAnnouncement);
 api.get('/admin/remove-announcement', auth.get.admin, administration.removeAnnouncement);
 api.get('/admin/fetch-content', auth.get.admin, administration.fetchContent);
+api.get('/admin/fetch-orders', auth.get.admin, administration.fetchOrders);
+api.get('/admin/fetch-listings', auth.get.admin, administration.fetchListings);
 api.get('/admin/update-content', auth.get.admin, administration.updateContent);
+api.get('/admin/change-listing-status', auth.get.admin, administration.setListingStatus, notifications.listingStatusChange);
+
 api.get('/admin/activate', auth.get.guest, administration.activateAccount);
 
 //Load Test Verfication

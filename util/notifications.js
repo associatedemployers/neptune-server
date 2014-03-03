@@ -96,6 +96,7 @@ exports.sendExportedApplication = function(req, res, next) {
 	}, function(error, response) {
 		if(error){
 			console.error(error);
+			transport.close();
 		} else {
 			transport.close(); // shut down the connection pool, no more messages
 			res.json({
@@ -126,6 +127,7 @@ exports.sendExportedApplications = function(req, res, next) {
 	}, function(error, response) {
 		if(error){
 			console.error(error);
+			transport.close();
 		} else {
 			transport.close(); // shut down the connection pool, no more messages
 			res.json({
@@ -147,8 +149,42 @@ exports.sendNewAdminUser = function (req, res, next) {
 	}, function(error, response) {
 		if(error){
 			console.error(error);
-		} else {
-			transport.close(); // shut down the connection pool, no more messages
 		}
+		transport.close(); // shut down the connection pool, no more messages
+	});
+}
+
+exports.listingStatusChange = function (req, res, next) {
+	var template = mailtemplate.listingStatusChange(req.query.active, req.query.reason, req.query.title);
+	var transport = nodemailer.createTransport("sendmail");
+	transport.sendMail({
+		from: "notifications@aejobs.org",
+		to: req.query.email,
+		subject: "Listing Status Change for " + req.query.title,
+		text: template.plain,
+		html: template.html
+	}, function(error, response) {
+		if(error){
+			console.error(error);
+		}
+		transport.close(); // shut down the connection pool, no more messages
+	});
+}
+
+exports.listingExpired = function (title, company, email) {
+	if(!email) { return }
+	var template = mailtemplate.listingExpired(title, company);
+	var transport = nodemailer.createTransport("sendmail");
+	transport.sendMail({
+		from: "notifications@aejobs.org",
+		to: email,
+		subject: title + ' has expired on aejobs.org',
+		text: template.plain,
+		html: template.html
+	}, function(error, response) {
+		if(error){
+			console.error(error);
+		}
+		transport.close(); // shut down the connection pool, no more messages
 	});
 }
