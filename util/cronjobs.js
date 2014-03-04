@@ -107,9 +107,6 @@ function expireJob (id) {
 			}
 		});
 	});
-	var req = {
-		query: {}
-	}
 }
 
 function finishUpExpiration () { 

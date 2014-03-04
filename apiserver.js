@@ -186,7 +186,7 @@ api.get('/autocomplete', auth.get.guest, searchdb.autocomplete, searchdb.sendRes
 api.get('/admin/login', auth.get.guest, administration.login);
 api.get('/admin/add-user', auth.get.admin, administration.checkExistingEmail, administration.createNewUser, notifications.sendNewAdminUser);
 api.get('/admin/edit-user', auth.get.admin, administration.editAdminUser);
-api.get('/admin/delete-user', auth.get.admin, administration.deleteAdminUser);
+api.get('/admin/delete-admin-user', auth.get.admin, administration.deleteAdminUser);
 api.get('/admin/fetch-administration-users', auth.get.admin, administration.fetchAdminUsers);
 api.get('/admin/analytics/quick', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.sendQuick);
 api.get('/admin/analytics/full', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.countOrders, analytics.countEmployers, analytics.countActiveEmployers, analytics.countUsers, analytics.countListings, analytics.countApplications, analytics.sendFull);
@@ -198,8 +198,13 @@ api.get('/admin/remove-announcement', auth.get.admin, administration.removeAnnou
 api.get('/admin/fetch-content', auth.get.admin, administration.fetchContent);
 api.get('/admin/fetch-orders', auth.get.admin, administration.fetchOrders);
 api.get('/admin/fetch-listings', auth.get.admin, administration.fetchListings);
-api.get('/admin/update-content', auth.get.admin, administration.updateContent);
 api.get('/admin/change-listing-status', auth.get.admin, administration.setListingStatus, notifications.listingStatusChange);
+api.get('/admin/fetch-resumes', auth.get.admin, administration.fetchResumes, administration.appendUser, administration.sendResults);
+api.get('/admin/fetch-employers', auth.get.admin, administration.fetchEmployers, administration.appendAccount, administration.sendResults);
+api.get('/admin/delete-employer', auth.get.admin, administration.deleteEmployerListing, administration.deleteEmployerAccount, notifications.deletedEmployer);
+api.get('/admin/fetch-users', auth.get.admin, administration.fetchUsers);
+api.get('/admin/delete-user', auth.get.admin, administration.deleteUserAccount, administration.deleteUserResume);
+api.get('/admin/update-content', auth.get.admin, administration.updateContent);
 
 api.get('/admin/activate', auth.get.guest, administration.activateAccount);
 

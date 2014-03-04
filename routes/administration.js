@@ -414,7 +414,7 @@ exports.setListingStatus = function (req, res, next) {
 			'error': 'Missing information from request.'
 		});
 		return;
-	} else if(!perms.view.listings) {
+	} else if(!perms.delete.listings) {
 		res.json({
 			'status': 'in error',
 			'error': "You don't have permission to do that."
@@ -433,6 +433,249 @@ exports.setListingStatus = function (req, res, next) {
 					'status': 'ok'
 				});
 				next();
+			}
+		});
+	});
+}
+
+exports.fetchResumes = function (req, res, next) {
+	var perms = req.query.perms;
+	if(!perms) {
+		res.json([]);
+		return;
+	} else if(!perms.view.resumes) {
+		res.json([]);
+		return;
+	}
+	db.collection('resumes', function(err, collection) {
+		collection.find().toArray(function(err, results) {
+			if(err) {
+				console.error(err);
+				res.json([]);
+			} else {
+				if(results.length > 0) {
+					req.resarr = results;
+					next();
+				} else {
+					res.json([]);
+				}
+			}
+		});
+	});
+}
+
+exports.appendUser = function (req, res, next) {
+	var resarr = req.resarr;
+	req.results = [];
+	var counter = 0;
+	db.collection('users', function(err, collection) {
+		resarr.forEach(function(resume) {
+			collection.findOne({ '_id': resume.user_id }, function(err, result) {
+				if(err) {
+					console.error(err);
+					return;
+				} else {
+					if(result) {
+						counter++;
+						delete result.login.password;
+						resume.user = result;
+						req.results.push(resume);
+						if(counter == resarr.length) {
+							next();
+						}
+					}
+				}
+			});
+		});
+	});
+}
+
+exports.sendResults = function (req, res, next) {
+	res.send(req.results);
+}
+
+exports.fetchEmployers = function (req, res, next) {
+	var perms = req.query.perms;
+	if(!perms) {
+		res.json([]);
+		return;
+	} else if(!perms.view.employers) {
+		res.json([]);
+		return;
+	}
+	db.collection('employers', function(err, collection) {
+		collection.find().toArray(function(err, results) {
+			if(err) {
+				console.error(err);
+				res.json([]);
+			} else {
+				if(results.length > 0) {
+					req.emparr = results;
+					next();
+				} else {
+					res.json([]);
+				}
+			}
+		});
+	});
+}
+
+exports.appendAccount = function (req, res, next) {
+	var emparr = req.emparr;
+	req.results = [];
+	var counter = 0;
+	db.collection('employerusers', function(err, collection) {
+		emparr.forEach(function(employer) {
+			collection.findOne({ '_id': employer.employer_id }, function(err, result) {
+				if(err) {
+					console.error(err);
+					return;
+				} else {
+					if(result) {
+						counter++;
+						if(result.login) delete result.login.password
+						employer.account = result;
+						req.results.push(employer);	
+					} else {
+						counter++;
+					}
+					if(counter == emparr.length) {
+						next();
+					}
+				}
+			});
+		});
+	});
+}
+
+exports.deleteEmployerListing = function (req, res, next) {
+	var perms = req.query.perms;
+	var id = req.query.listing_id;
+	if(!perms || !id || !req.query.account_id) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	} else if(!perms.delete.employers) {
+		res.json({
+			'status': 'in error',
+			'error': 'You do not have the correct permissions to do that.'
+		});
+		return;
+	}
+	db.collection('employers', function(err, collection) {
+		collection.remove({ '_id': new BSON.ObjectID(id) }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				next();
+			}
+		});
+	});
+}
+
+exports.deleteEmployerAccount = function (req, res, next) {
+	var id = req.query.account_id;
+	if(!id) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	}
+	db.collection('employerusers', function(err, collection) {
+		collection.remove({ '_id': new BSON.ObjectID(id) }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				console.log(result);
+				res.json({
+					'status': 'ok'
+				});
+				next();
+			}
+		});
+	});
+}
+
+exports.fetchUsers = function (req, res, next) {
+	var perms = req.query.perms;
+	if(!perms) {
+		res.json([]);
+		return;
+	} else if(!perms.view.users) {
+		res.json([]);
+		return;
+	}
+	db.collection('users', function(err, collection) {
+		collection.find().toArray(function(err, results) {
+			if(err) {
+				console.error(err);
+				res.json([]);
+			} else {
+				res.json(results);
+			}
+		});
+	});
+}
+
+exports.deleteUserAccount = function (req, res, next) {
+	var perms = req.query.perms;
+	var id = req.query.user_id;
+	console.log('got here first');
+	if(!perms || !id) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	} else if(!perms.delete.users) {
+		res.json({
+			'status': 'in error',
+			'error': 'You do not have the correct permissions to do that.'
+		});
+		return;
+	}
+	console.log('continuing');
+	db.collection('users', function(err, collection) {
+		collection.remove({ '_id': new BSON.ObjectID(id) }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				next();
+			}
+		});
+	});
+}
+
+exports.deleteUserResume = function (req, res, next) {
+	console.log('got here');
+	var id = req.query.user_id;
+	db.collection('resumes', function(err, collection) {
+		collection.remove({ 'user_id': new BSON.ObjectID(id) }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
 			}
 		});
 	});

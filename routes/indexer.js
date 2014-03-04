@@ -41,7 +41,7 @@ exports.indexFile = function (req, res, next) {
 						path = __dirname + '/../tmp_indexing/' + filename;
 						if(ext == "pdf" || ext == "doc" || ext == "docx" || ext == "rtf" || ext == "txt") {
 							if(ext == "rtf") {
-								textract("application/msword", path, function(err, text) {
+								textract("application/msword", path, { 'preserveLineBreaks': true }, function(err, text) {
 									if(err) {
 										console.log(err);
 										req.indexed = false;
@@ -54,7 +54,7 @@ exports.indexFile = function (req, res, next) {
 									next();
 								});
 							} else {
-								textract(path, function(err, text) {
+								textract(path, { 'preserveLineBreaks': true }, function(err, text) {
 									if(err) {
 										console.log(err);
 										req.indexed = false;

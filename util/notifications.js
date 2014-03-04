@@ -188,3 +188,21 @@ exports.listingExpired = function (title, company, email) {
 		transport.close(); // shut down the connection pool, no more messages
 	});
 }
+
+exports.deletedEmployer = function (req, res, next) {
+	if(!req.query.email) { return }
+	var template = mailtemplate.deletedEmployer(req.query.name.company);
+	var transport = nodemailer.createTransport("sendmail");
+	transport.sendMail({
+		from: "no-reply@aejobs.org",
+		to: req.query.email,
+		subject: 'Your employer account has been removed on aejobs.org',
+		text: template.plain,
+		html: template.html
+	}, function(error, response) {
+		if(error){
+			console.error(error);
+		}
+		transport.close(); // shut down the connection pool, no more messages
+	});
+}
