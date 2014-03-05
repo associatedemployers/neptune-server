@@ -139,9 +139,12 @@ api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured); //function comple
 
 //users
 api.get('/users', auth.get.admin, users.fetchAll);
-api.get('/users/:id', auth.get.admin, users.fetchByID);
+api.get('/user/:id', auth.get.admin, users.fetchByID);
 api.post('/users', auth.post.guest, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, users.addUser, indexer.indexFile, indexer.saveResume);//function complete
 api.get('/ie/users', auth.get.guest, transformreq, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, users.addUser, indexer.indexFile, indexer.saveResume);//function complete
+api.get('/users/save-job', auth.get.user, users.saveJob);
+api.get('/users/fetch-saved-jobs', auth.get.user, users.fetchSavedJobs);
+api.get('/users/delete-saved-job', auth.get.user, users.deleteSavedJob);
 /*api.put('/users', auth.user, users.updateUser);
 api.delete('/users', auth.user, users.deleteUser);*/
 

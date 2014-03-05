@@ -3,7 +3,8 @@ console.log("STARTUP: Loaded users route.");
 
 var mongo = require('mongodb'),
 	nodemailer = require('nodemailer'),
-	mailtemplate = require('.././config/mail.templates');
+	mailtemplate = require('.././config/mail.templates'),
+	atob = require('atob');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Users Collection Does Not Exist.",
@@ -179,6 +180,84 @@ exports.fetchPageContent = function (req, res, next) {
 				});
 			} else {
 				res.json(result);
+			}
+		});
+	});
+}
+
+exports.saveJob = function (req, res, next) {
+	var user_id = req.query.user_id,
+		job = req.query.job;	
+	if(!user_id || !job || !job.time_stamp || !job.job_id || !job.title) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing fields'
+		});
+		return
+	}
+	db.collection('users', function(err, collection) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $addToSet: { 'saved_jobs': job } }, {remove:false, new:true}, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
+			}
+		});
+	});
+}
+
+exports.fetchSavedJobs = function (req, res, next) {
+	var user_id = req.query.user_id,
+		password = atob(req.query.password);	
+	if(!user_id || !password) {
+		res.json({
+			'error': 'Missing fields'
+		});
+		return
+	}
+	db.collection('users', function(err, collection) {
+		collection.findOne({ '_id': new BSON.ObjectID(user_id), 'login.password': password }, { fields: { '_id': 0, 'saved_jobs': 1 } }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'error': err
+				});
+			} else {
+				res.json(result.saved_jobs);
+			}
+		});
+	});
+}
+
+exports.deleteSavedJob = function (req, res, next) {
+	var user_id = req.query.user_id,
+		password = atob(req.query.password),
+		job_id = req.query.job_id;	
+	if(!user_id || !password || !job_id) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing fields'
+		});
+		return
+	}
+	db.collection('users', function(err, collection) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(user_id), 'login.password': password,  }, [], { $pull: { 'saved_jobs': {'job_id': job_id } } }, { remove: false, new: true }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
 			}
 		});
 	});
