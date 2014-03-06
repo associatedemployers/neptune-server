@@ -6,7 +6,8 @@ var mongo = require('mongodb'),
 	haversine = require('haversine'),
 	nodemailer = require('nodemailer'),
 	mailtemplate = require('.././config/mail.templates'),
-	md5 = require('MD5');
+	md5 = require('MD5'),
+	token = require('.././config/tokens');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Employers Collection Does Not Exist.",
@@ -631,5 +632,60 @@ exports.saveLabels = function(req, res, next) {
 				});
 			}
 		})
+	});
+}
+
+
+exports.unlockResumes = function (req, res, next) {
+	var order = req.query.order;
+	db.collection('employerusers', function(err, collection) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(order.employer_id) }, [], { $set: { 'resume_search': order.expiration } }, { remove: false, new: true }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else {
+				res.json({
+					'status': 'processed',
+					'expiration': order.expiration
+				});
+			}
+		});
+	});
+}
+
+
+exports.checkExpiration = function (req, res, next) {
+	var id = req.query.employer_id;
+	if(!id) {
+		res.json({
+			'error': 'Missing field.'
+		});
+		return;
+	}
+	db.collection('employerusers', function(err, collection) {
+		collection.findOne({ '_id': new BSON.ObjectID(id) }, { fields: { '_id': 0, 'resume_search': 1 } }, function(err, result) {
+			if(err) {
+				res.json({
+					'error': err
+				});
+			} else {
+				var expiration = result.resume_search;
+				var dst = expiration.split(' ').shift().split('/');
+				var date = new Date(dst[0], (dst[1] - 1), dst[2]).getTime();
+				var now = new Date().getTime();
+				if(date < now) {
+					res.json({
+						'error': 'This feature is expired for your account.'
+					});
+				} else {
+					res.json({
+						'token': token.searchToken
+					});
+				}
+			}
+		});
 	});
 }

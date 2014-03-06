@@ -158,11 +158,13 @@ api.post('/employers', auth.post.guest, employers.addEmployer, employers.checkEx
 api.get('/ie/employers', auth.get.guest, transformreq, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing); //IE SUPPORT <10 //function complete
 api.get('/check-existing-email', auth.get.guest,  employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.checkComplete);//function complete
 api.get('/check-existing-employer-company', auth.get.guest,  employers.checkExistingCompany, employers.checkComplete);//function complete
-api.get('/process-order', auth.get.employer, transaction.process, transaction.storeOrder, transaction.storeCard);//function complete
+api.get('/process-order', auth.get.employer, transaction.process, transaction.storeOrder, transaction.storeCard, employers.unlockResumes);//function complete
 /*api.put('/employers', auth.employer, employers.updateEmployer);
 api.delete('/employers', auth.employer, jobs.deleteEmployer);*/
 api.get('/featured/employers', auth.get.guest, employers.fetchFeatured); //function complete
 api.get('/employer/verify-account', auth.get.guest, employers.verifyAccount, employers.writeAccount, employers.writeListing); //function complete
+api.get('/employer/resume-search-token', auth.get.employer, employers.checkExpiration);
+api.get('/employer/resume-search', auth.get.employer, searchdb.resumeSearch, searchdb.appendUser, searchdb.sendResults);
 
 api.get('/employer/account/applications', auth.get.employer, employers.fetchApplications);
 api.get('/employer/account/applicant-labels/save', auth.get.employer, employers.saveLabels);

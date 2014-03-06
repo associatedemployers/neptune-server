@@ -2,7 +2,8 @@
 
 console.log("STARTUP: Loaded searchdb route.");
 
-var mongo = require('mongodb');
+var mongo = require('mongodb'),
+	token = require('.././config/tokens');
 
 var exception = {
 	'1001': "API ERROR 1001: Failed To Open DB."
@@ -46,6 +47,68 @@ exports.process = function(req, res, next) {
 			});
 			req.results = results;
 			next();
+		});
+	});
+}
+
+exports.resumeSearch = function(req, res, next) {
+	if(!req.query.search_query || req.query.search_token !== token.searchToken) {
+		res.json([]);
+		return;
+	}
+	var results = [],
+		query = req.query.search_query.replace(",", " "),
+		sarray = query.split(" ");
+	req.resarr = [];
+	db.collection('resumes', function(err, collection) {
+		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) {
+			var results = [];
+			items.forEach(function(item) {
+				var s = JSON.stringify(item).toLowerCase();
+				var matched = true;
+				sarray.forEach(function(qs) {
+					if(s.search(qs.toLowerCase()) < 0) {
+						matched = false;
+					}
+				});
+				if(matched) {
+					var highlighted = item.extracted_text;
+					sarray.forEach(function(qs) {
+						highlighted = highlighted.replace(new RegExp("(" + qs + ")", 'gi'), '<span class="highlight">$1</span>');
+					});
+					highlighted = highlighted.replace(new RegExp('\\n', 'g'), '<br />');
+					delete item.extracted_text;
+					item.highlighted_text = highlighted;
+					req.resarr.push(item);
+				}
+			});
+			next();
+		});
+	});
+}
+
+exports.appendUser = function (req, res, next) {
+	var resarr = req.resarr;
+	req.results = [];
+	var counter = 0;
+	db.collection('users', function(err, collection) {
+		resarr.forEach(function(resume) {
+			collection.findOne({ '_id': resume.user_id }, function(err, result) {
+				if(err) {
+					console.error(err);
+					return;
+				} else {
+					if(result) {
+						counter++;
+						delete result.login.password;
+						resume.user = result;
+						req.results.push(resume);
+						if(counter == resarr.length) {
+							next();
+						}
+					}
+				}
+			});
 		});
 	});
 }

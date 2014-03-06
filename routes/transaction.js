@@ -97,22 +97,25 @@ exports.process = function(req, res, next) {
 	gateway.transaction.sale(saleObject, function(err, result) {
 		if(result.success) {
 			req.transactionResult = result;
+			var template;
 			if(order.type == "listing") {
-				var transport = nodemailer.createTransport("sendmail");
-				var template = mailtemplate.newListing(order.billing.name, result.transaction.id, order.total);
-				transport.sendMail({
-					from: "no-reply@aejobs.org",
-					to: order.email,
-					subject: "Thanks for your order, " + order.billing.name.company,
-					text: template.plain,
-					html: template.html
-				}, function(error, response){
-					if(error){
-						console.log(error);
-					}
-					transport.close(); // shut down the connection pool, no more messages
-				});
-			}	
+				template = mailtemplate.newListing(order.billing.name, result.transaction.id, order.total);
+			} else if(order.type == "resumes") {
+				template = mailtemplate.resumeAccess(order.billing.name, result.transaction.id, order.total);
+			}
+			var transport = nodemailer.createTransport("sendmail");
+			transport.sendMail({
+				from: "no-reply@aejobs.org",
+				to: order.email,
+				subject: "Thanks for your order, " + order.billing.name.company,
+				text: template.plain,
+				html: template.html
+			}, function(error, response){
+				if(error){
+					console.log(error);
+				}
+				transport.close(); // shut down the connection pool, no more messages
+			});
 			next();
 		} else {
 			res.json({
@@ -128,6 +131,7 @@ exports.storeOrder = function(req, res, next) {
 	order.orderResult = req.transactionResult;
 	req.savingCard = order.card.save;
 	delete order.card;
+	delete order.orderResult.transaction.shipping;
 	db.collection('orders', function(err, collection) {	
 		collection.insert(order, {safe:true}, function(err, result) {
 			if(err) {
@@ -142,19 +146,27 @@ exports.storeOrder = function(req, res, next) {
 	});
 }
 
-exports.storeCard = function(req, res) {
+exports.storeCard = function(req, res, next) {
 	var order = req.query.order;
 	if(req.savingCard) {
 		db.collection('employerusers', function(err, collection) {	
 			collection.update( { '_id': new BSON.ObjectID(order.employer_id) }, { $addToSet: { 'stored_cards': { 'token': req.transactionResult.transaction.creditCard.token, 'masked_number': req.transactionResult.transaction.creditCard.maskedNumber } } }, function(err, result) {
-				res.send({
-					'status': "processed"
-				});
+				if(order.type == "resumes") {
+					next();
+				} else {
+					res.send({
+						'status': "processed"
+					});
+				}
 			});
 		});
 	} else {
-		res.send({
-			'status': "processed"
-		});
+		if(order.type == "resumes") {
+			next();
+		} else {
+			res.send({
+				'status': "processed"
+			});
+		}
 	}
 }
