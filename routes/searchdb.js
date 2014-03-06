@@ -29,7 +29,9 @@ exports.process = function(req, res, next) {
 	var results = [],
 		query = req.query.search_query.replace(",", " "),
 		sarray = query.split(" "); //split the keywords
-	
+	sarray = sarray.filter(function(qs) {
+		return qs.length > 2
+	});
 	db.collection('jobs', function(err, collection) { //connect to jobs collection
 		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) { //press all jobs into an array
 			var results = [];
@@ -60,6 +62,13 @@ exports.resumeSearch = function(req, res, next) {
 		query = req.query.search_query.replace(",", " "),
 		sarray = query.split(" ");
 	req.resarr = [];
+	sarray = sarray.filter(function(qs) {
+		return qs.length > 2
+	});
+	if(sarray.length < 1) {
+		res.json([]);
+		return;
+	}
 	db.collection('resumes', function(err, collection) {
 		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) {
 			var results = [];
@@ -82,7 +91,11 @@ exports.resumeSearch = function(req, res, next) {
 					req.resarr.push(item);
 				}
 			});
-			next();
+			if (req.resarr.length > 0) {
+				next();
+			} else {
+				res.json([]);
+			}
 		});
 	});
 }

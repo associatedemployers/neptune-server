@@ -96,6 +96,7 @@ exports.addJob = function(req, res, next) {
 		return;
 	}
 	var listing = req.body.listing;
+	listing.active = true;
 	db.collection('jobs', function(err, collection) {
 		collection.insert(listing, { safe: true }, function (err, result) {
 			if(err) {
