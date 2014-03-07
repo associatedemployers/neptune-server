@@ -93,7 +93,6 @@ exports.fetchByID = function(req, res, next) {
 
 exports.appendListings = function (req, res, next) {
 	var id = req.params.id;
-	console.log(id);
 	db.collection('jobs', function(err, collection) {
 		collection.find({ 'employer_id': id, 'active': true }).toArray(function(err, results) {
 			if(err) {
@@ -102,7 +101,6 @@ exports.appendListings = function (req, res, next) {
 					'error': err
 				});
 			} else {
-				console.log(results);
 				req.employer.listings_array = results;
 				res.json(req.employer);
 			}
@@ -206,11 +204,11 @@ exports.geocode = function(req, res, next) {
 	}
 	var adrstr = a.line1 + a.city + a.state + a.zipcode;
 	gm.geocode(adrstr, function(err, data){
-		if(req.body.account_data) {
+		if(req.body.account_data && data) {
 			req.body.account_data.address.geo = {};
 			req.body.account_data.address.geo.lat = data.results[0].geometry.location.lat;
 			req.body.account_data.address.geo.lng = data.results[0].geometry.location.lng;
-		} else {
+		} else if(data) {
 			req.body.sync_data.address.geo = {};
 			req.body.sync_data.address.geo.lat = data.results[0].geometry.location.lat;
 			req.body.sync_data.address.geo.lng = data.results[0].geometry.location.lng;

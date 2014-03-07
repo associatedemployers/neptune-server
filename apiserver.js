@@ -211,6 +211,7 @@ api.get('/admin/fetch-users', auth.get.admin, administration.fetchUsers);
 api.get('/admin/delete-user', auth.get.admin, administration.deleteUserAccount, administration.deleteUserResume);
 api.get('/admin/update-content', auth.get.admin, administration.updateContent);
 api.get('/admin/add-image-to-rotation', auth.get.admin, administration.addImageToRotation);
+api.get('/admin/remove-image-from-rotation', auth.get.admin, administration.removeImageFromRotation);
 
 api.get('/admin/activate', auth.get.guest, administration.activateAccount);
 

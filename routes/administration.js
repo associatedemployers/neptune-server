@@ -713,3 +713,36 @@ exports.addImageToRotation = function (req, res, next) {
 		});
 	});
 }
+
+exports.removeImageFromRotation = function (req, res, next) {
+	var perms = req.query.perms;
+	var ts = req.query.ts;
+	if(!perms || !ts) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	} else if(!perms.edit.content) {
+		res.json({
+			'status': 'in error',
+			'error': 'You do not have the correct permissions to do that.'
+		});
+		return;
+	}
+	db.collection('content', function(err, collection) {
+		collection.findAndModify({ 'page': 'image_rotation' }, [], { $pull: { 'content': { 'time_stamp': ts } } }, { remove: false, new: true}, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
+			}
+		});
+	});
+}
