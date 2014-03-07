@@ -63,7 +63,7 @@ exports.resumeSearch = function(req, res, next) {
 		sarray = query.split(" ");
 	req.resarr = [];
 	sarray = sarray.filter(function(qs) {
-		return qs.length > 2
+		return qs.length > 1
 	});
 	if(sarray.length < 1) {
 		res.json([]);

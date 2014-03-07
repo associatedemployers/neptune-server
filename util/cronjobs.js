@@ -88,6 +88,7 @@ function iterateJobs (jobs) {
 		var now = new Date().getTime();
 		if(date < now) {
 			expireJob(job._id);
+			pullListing(job.employer_id, job._id.toString());
 			notifications.expiredListing(job.display.title, job.name.company, job.notification_email);
 		}
 	});
@@ -105,6 +106,14 @@ function expireJob (id) {
 			} else if(!num) {
 				console.log('!!! Could not expire job (id: ' + id + ')');
 			}
+		});
+	});
+}
+
+function pullListing (empid, id) {
+	db.collection('jobs', function(err, collection) {
+		collection.update({ '_id': new BSON.ObjectID(empid) }, { $pull: { 'listings': id } }, function(err, num) {
+			if(err) console.error(err);
 		});
 	});
 }

@@ -153,7 +153,7 @@ api.get('/search/employers/location/:state', auth.get.guest, employers.fetchBySt
 api.get('/search/employers/tags', auth.get.guest, employers.fetchByTag);//function complete
 api.get('/fetchtags/employers', auth.get.guest, employers.fetchAllTags);//function complete
 api.get('/employers', auth.get.guest, employers.fetchAll); //function complete
-api.get('/employers/:id', auth.get.guest, employers.fetchByID); //function complete
+api.get('/employers/:id', auth.get.guest, employers.fetchByID, employers.appendListings); //function complete
 api.post('/employers', auth.post.guest, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing);//function complete
 api.get('/ie/employers', auth.get.guest, transformreq, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing); //IE SUPPORT <10 //function complete
 api.get('/check-existing-email', auth.get.guest,  employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.checkComplete);//function complete
@@ -210,6 +210,7 @@ api.get('/admin/delete-employer', auth.get.admin, administration.deleteEmployerL
 api.get('/admin/fetch-users', auth.get.admin, administration.fetchUsers);
 api.get('/admin/delete-user', auth.get.admin, administration.deleteUserAccount, administration.deleteUserResume);
 api.get('/admin/update-content', auth.get.admin, administration.updateContent);
+api.get('/admin/add-image-to-rotation', auth.get.admin, administration.addImageToRotation);
 
 api.get('/admin/activate', auth.get.guest, administration.activateAccount);
 

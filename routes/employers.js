@@ -58,7 +58,7 @@ exports.fetchAll = function(req, res) {
     });
 }
 
-exports.fetchByID = function(req, res) {
+exports.fetchByID = function(req, res, next) {
 	var id = req.params.id;
 	if(id.length !== 24) {
 		if(req.query.callback !== null) {
@@ -84,11 +84,27 @@ exports.fetchByID = function(req, res) {
 					res.status(404).json("Not Found");
 				}
 			} else {
-				if(req.query.callback !== null) {
-					res.jsonp(item);
-				} else {
-					res.json(item);
-				}
+				req.employer = item;
+				next();
+			}
+		});
+	});
+}
+
+exports.appendListings = function (req, res, next) {
+	var id = req.params.id;
+	console.log(id);
+	db.collection('jobs', function(err, collection) {
+		collection.find({ 'employer_id': id, 'active': true }).toArray(function(err, results) {
+			if(err) {
+				console.error(err);
+				res.status(500).json({
+					'error': err
+				});
+			} else {
+				console.log(results);
+				req.employer.listings_array = results;
+				res.json(req.employer);
 			}
 		});
 	});

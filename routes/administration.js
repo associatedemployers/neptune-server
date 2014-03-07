@@ -680,3 +680,36 @@ exports.deleteUserResume = function (req, res, next) {
 		});
 	});
 }
+
+exports.addImageToRotation = function (req, res, next) {
+	var perms = req.query.perms;
+	var image = req.query.image;
+	if(!perms || !image) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information from request.'
+		});
+		return;
+	} else if(!perms.edit.content) {
+		res.json({
+			'status': 'in error',
+			'error': 'You do not have the correct permissions to do that.'
+		});
+		return;
+	}
+	db.collection('content', function(err, collection) {
+		collection.findAndModify({ 'page': 'image_rotation' }, [], { $addToSet: { 'content': image } }, { remove: false, new: true, upsert: true }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': 'Mongo err: ' + err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
+			}
+		});
+	});
+}
