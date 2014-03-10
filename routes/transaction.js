@@ -105,7 +105,7 @@ exports.process = function(req, res, next) {
 			}
 			var transport = nodemailer.createTransport("sendmail");
 			transport.sendMail({
-				from: "no-reply@aejobs.org",
+				from: "no-reply@jobjupiter.com",
 				to: order.email,
 				subject: "Thanks for your order, " + order.billing.name.company,
 				text: template.plain,

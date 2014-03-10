@@ -30,7 +30,7 @@ exports.indexFile = function (req, res, next) {
 	if(resm) {
 		if(resm.path) {
 			var path = req.body.account_data.resume.path,
-				path = path.replace("../../", "http://www.aejobs.org:80/dev/"),
+				path = path.replace("../../", "http://www.jobjupiter.com:80/"),
 				filename = path.split("/").pop(),
 				ext = req.body.account_data.resume.extension,
 				ext = ext.toString().toLowerCase();

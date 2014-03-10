@@ -30,7 +30,7 @@ exports.newApplication = function (req, res, next) {
 	var employer_template = mailtemplate.jobNotification_employer(user_data.name, job_info, cover_letter);
 	
 	var path = req.query.resume,
-		path = path.replace("../../", "http://www.aejobs.org:80/dev/"),
+		path = path.replace("../../", "http://www.jobjupiter.com:80/"),
 		filename = path.split("/").pop();
 	http.get(path, function (fileresponse) {
 		if (fileresponse.statusCode === 200) {
@@ -39,7 +39,7 @@ exports.newApplication = function (req, res, next) {
 				path = __dirname + '/../emailed_resumes/' + filename;
 				var transport = nodemailer.createTransport("sendmail");
 				transport.sendMail({ //send the user notification
-					from: "notifications@aejobs.org",
+					from: "notifications@jobjupiter.com",
 					to: req.user_email,
 					subject: "Good luck " + user_data.name.first + "!",
 					text: user_template.plain,
@@ -49,7 +49,7 @@ exports.newApplication = function (req, res, next) {
 						console.error(error);
 					} else {
 						transport.sendMail({
-							from: "notifications@aejobs.org",
+							from: "notifications@jobjupiter.com",
 							to: req.employer_email,
 							subject: "New Application for " + job_info.display.title + ".",
 							text: employer_template.plain,
@@ -88,7 +88,7 @@ exports.sendExportedApplication = function(req, res, next) {
 	var template = mailtemplate.exportApplication(ao, employer_id);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({ //send the user notification
-		from: "notifications@aejobs.org",
+		from: "notifications@jobjupiter.com",
 		to: emailTo,
 		subject: "Exported Application: " + ao.applicant.name.first + " " + ao.applicant.name.last,
 		text: template.plain,
@@ -119,9 +119,9 @@ exports.sendExportedApplications = function(req, res, next) {
 	var template = mailtemplate.exportApplications(aos, employer_id);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({ //send the apps
-		from: "notifications@aejobs.org",
+		from: "notifications@jobjupiter.com",
 		to: emailTo,
-		subject: "Exported Applications from aejobs.org",
+		subject: "Exported Applications from jobjupiter.com",
 		text: template.plain,
 		html: template.html
 	}, function(error, response) {
@@ -141,7 +141,7 @@ exports.sendNewAdminUser = function (req, res, next) {
 	var template = mailtemplate.newAdminUser(req.query.user, req.verfurl);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
-		from: "no-reply@aejobs.org",
+		from: "no-reply@jobjupiter.com",
 		to: req.query.user.login.email,
 		subject: "Please activate your administrative account",
 		text: template.plain,
@@ -158,7 +158,7 @@ exports.listingStatusChange = function (req, res, next) {
 	var template = mailtemplate.listingStatusChange(req.query.active, req.query.reason, req.query.title);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
-		from: "notifications@aejobs.org",
+		from: "notifications@jobjupiter.com",
 		to: req.query.email,
 		subject: "Listing Status Change for " + req.query.title,
 		text: template.plain,
@@ -176,9 +176,9 @@ exports.listingExpired = function (title, company, email) {
 	var template = mailtemplate.listingExpired(title, company);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
-		from: "notifications@aejobs.org",
+		from: "notifications@jobjupiter.com",
 		to: email,
-		subject: title + ' has expired on aejobs.org',
+		subject: title + ' has expired on jobjupiter.com',
 		text: template.plain,
 		html: template.html
 	}, function(error, response) {
@@ -194,9 +194,9 @@ exports.deletedEmployer = function (req, res, next) {
 	var template = mailtemplate.deletedEmployer(req.query.name.company);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
-		from: "no-reply@aejobs.org",
+		from: "no-reply@jobjupiter.com",
 		to: req.query.email,
-		subject: 'Your employer account has been removed on aejobs.org',
+		subject: 'Your employer account has been removed on jobjupiter.com',
 		text: template.plain,
 		html: template.html
 	}, function(error, response) {

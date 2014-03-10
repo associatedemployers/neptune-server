@@ -58,7 +58,7 @@ exports.addUser = function(req, res, next) {
 				var transport = nodemailer.createTransport("sendmail");
 				var mailTemplate = mailtemplate.newUser(account.name);
 				transport.sendMail({
-					from: "no-reply@aejobs.org",
+					from: "no-reply@jobjupiter.com",
 					to: account.login.email,
 					subject: "Welcome to aejobs" + account.name.first,
 					text: mailTemplate.plain,

@@ -1,6 +1,6 @@
 {
-    "name": "aejobsapi",
-    "description": "AE Jobs API",
+    "name": "jupiterapi",
+    "description": "Jupiter API for jobjupiter.com",
     "version": "0.1.0",
     "private": true,
     "dependencies": {

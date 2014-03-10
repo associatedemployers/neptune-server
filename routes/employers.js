@@ -237,7 +237,7 @@ exports.createEmployerAccount = function(req, res, next) {
 						var transport = nodemailer.createTransport("sendmail");
 						var mailTemplate = mailtemplate.newEmployer(account.name, verificationLink);
 						transport.sendMail({
-							from: "no-reply@aejobs.org",
+							from: "no-reply@jobjupiter.com",
 							to: account.login.email,
 							subject: "Welcome to aejobs, " + account.name.company,
 							text: mailTemplate.plain,

@@ -2,7 +2,7 @@
 
 V0.1.1 (dev)
 
-Main api.aejobs.org apiserver.js
+Main api.jobjupiter.com apiserver.js
 (API SERVER) by AE Development
 Node.js, Express.js, MongoDB
 
