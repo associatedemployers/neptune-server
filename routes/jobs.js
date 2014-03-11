@@ -1,7 +1,8 @@
 // Jobs Route
 console.log("STARTUP: Loaded jobs route.");
 
-var mongo = require('mongodb');
+var mongo = require('mongodb'),
+	gm = require('googlemaps');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Jobs Collection Does Not Exist.",
@@ -84,6 +85,23 @@ exports.fetchByID = function(req, res) {
 				}
 			}
 		});
+	});
+}
+
+exports.geocode = function(req, res, next) {
+	var loc = req.body.listing.location;
+	if(!a.state) {
+		next();
+		return;
+	}
+	var adrstr = loc.city + ", " + loc.state;
+	gm.geocode(adrstr, function(err, data){
+		if(data) {
+			req.body.listing.location.geo = {};
+			req.body.listing.location.geo.lat = data.results[0].geometry.location.lat;
+			req.body.listing.location.geo.lng = data.results[0].geometry.location.lng;
+		}
+		next();
 	});
 }
 
