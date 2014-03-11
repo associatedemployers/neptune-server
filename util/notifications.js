@@ -26,7 +26,7 @@ exports.newApplication = function (req, res, next) {
 	var resume = req.query.resume;
 	var cover_letter = req.query.cover_letter;
 	
-	var user_template = mailtemplate.jobNotification_user(user_data.name, job_info.display.title);
+	var user_template = mailtemplate.jobNotification_user(user_data.name, job_info.display.title, job_info.name.company);
 	var employer_template = mailtemplate.jobNotification_employer(user_data.name, job_info, cover_letter);
 	
 	var path = req.query.resume,
