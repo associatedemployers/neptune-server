@@ -90,7 +90,7 @@ exports.fetchByID = function(req, res) {
 
 exports.geocode = function(req, res, next) {
 	var loc = req.body.listing.location;
-	if(!a.state) {
+	if(!loc.state) {
 		next();
 		return;
 	}
