@@ -202,8 +202,9 @@ exports.geocode = function(req, res, next) {
 		next();
 		return;
 	}
-	var adrstr = a.line1 + a.city + a.state + a.zipcode;
+	var adrstr = a.line1 + " " + a.city + ", " + a.state + " " + a.zipcode;
 	gm.geocode(adrstr, function(err, data){
+		if(err) console.log(err);
 		if(req.body.account_data && data) {
 			req.body.account_data.address.geo = {};
 			req.body.account_data.address.geo.lat = data.results[0].geometry.location.lat;

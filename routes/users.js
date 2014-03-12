@@ -14,7 +14,7 @@ var exception = {
 var Server = mongo.Server,
     Db = mongo.Db,
     BSON = mongo.BSONPure;
- 
+var recoveredEmails = [];
 var server = new Server('localhost', 27017, {auto_reconnect: true});
 db = new Db('ae', server, {safe: true}, {strict: false});
 
@@ -261,4 +261,71 @@ exports.deleteSavedJob = function (req, res, next) {
 			}
 		});
 	});
+}
+
+exports.recoverPassword = function (req, res, next) {
+	var email = req.query.email;
+	var matched = false;
+	if(recoveredEmails.length > 0) {
+		recoveredEmails.forEach(function(em) {
+			if(em == email) {
+				matched = true;
+			}
+		});
+	}
+	if(matched) {
+		res.json({
+			'status': 'in error',
+			'error': 'This email has already received a reminder recently. Please try again later.'
+		});
+		return;
+	}
+	filterRecovered(email);
+	db.collection('users', function(err, collection) {
+		collection.findOne({ 'login.email': email }, function(err, result) {
+			if(err) {
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else if(!result) {
+				res.json({
+					'status': 'in error',
+					'error': 'No user found with that email.'
+				});
+			} else {
+				var transport = nodemailer.createTransport("sendmail");
+				var mailTemplate = mailtemplate.passwordRecovery(email, result.name.first, result.login.password);
+				transport.sendMail({
+					from: "no-reply@jobjupiter.com",
+					to: email,
+					subject: "Here is your password reminder, " + result.name.first,
+					text: mailTemplate.plain,
+					html: mailTemplate.html
+				}, function(error, response){
+					if(error){
+						console.log(error);
+						res.json({
+							'status': 'in error',
+							'error': 'Email server error ' + error
+						});
+					} else {
+						res.json({
+							'status': 'ok'
+						});
+						transport.close(); // shut down the connection pool, no more messages
+					}
+				});
+			}
+		});
+	});
+}
+
+function filterRecovered (email) {
+	recoveredEmails.push(email);
+	setTimeout(function () {
+		recoveredEmails = recoveredEmails.filter(function(em) {
+			return em !== email;
+		});
+	}, (60 * 1000) * 10) //disallow resend for 10 minutes. Will reduce any spam that **may** occur.
 }

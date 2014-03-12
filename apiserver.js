@@ -136,6 +136,7 @@ api.post('/jobs', auth.post.employer, jobs.geocode, jobs.addJob, employers.addLi
 api.get('/ie/job/add', auth.get.employer, transformreq, jobs.geocode, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile);
 /*api.delete('/jobs', auth.employer, jobs.deleteJob);*/ //Don't know if we will use this one?...
 api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured); //function complete
+api.get('/search/jobs/location/:state', auth.get.guest, jobs.fetchByState, jobs.radiusSearch);
 
 //users
 api.get('/users', auth.get.admin, users.fetchAll);
@@ -145,6 +146,7 @@ api.get('/ie/users', auth.get.guest, transformreq, employers.checkExistingUserEm
 api.get('/users/save-job', auth.get.user, users.saveJob);
 api.get('/users/fetch-saved-jobs', auth.get.user, users.fetchSavedJobs);
 api.get('/users/delete-saved-job', auth.get.user, users.deleteSavedJob);
+api.get('/users/recover-password', auth.get.guest, users.recoverPassword);
 /*api.put('/users', auth.user, users.updateUser);
 api.delete('/users', auth.user, users.deleteUser);*/
 

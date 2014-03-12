@@ -2,7 +2,8 @@
 console.log("STARTUP: Loaded jobs route.");
 
 var mongo = require('mongodb'),
-	gm = require('googlemaps');
+	gm = require('googlemaps'),
+	haversine = require('haversine');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Jobs Collection Does Not Exist.",
@@ -230,4 +231,45 @@ exports.fetchInfo = function(req, res, next) {
 			}
 		});
 	});
+}
+
+exports.fetchByState = function(req, res, next) {
+	var state = req.params.state;
+	if(!state) {
+		res.send("No state data received.");
+		return;	
+	}
+	db.collection('jobs', function(err, collection) {
+		collection.find({'active': true, "location.state": state }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+			if(err) {
+				res.send(err);
+				return;
+			} else {
+				req.dataArray = items;
+				next();
+			}
+		});
+	});
+}
+
+exports.radiusSearch = function(req, res, next) {
+	var q = req.query;
+	var r = req.query.radius;
+	var items = req.dataArray,
+		results = [],
+		manifest = {
+			'latitude': q.lat,
+			'longitude': q.lng
+		};
+	items.forEach(function(item) { //iterate over the items array
+		if(!item.location.geo) { return; }
+		var item_geo = {
+			'latitude': item.location.geo.lat,
+			'longitude': item.location.geo.lng
+		}
+		if(haversine(manifest, item_geo, {'unit': 'mi'}) < r) { //distance less than search radius
+			results.push(item);	//push the item into the results array
+		}
+	});
+	res.json(results);
 }
