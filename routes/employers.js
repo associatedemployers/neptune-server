@@ -240,7 +240,7 @@ exports.createEmployerAccount = function(req, res, next) {
 						transport.sendMail({
 							from: "no-reply@jobjupiter.com",
 							to: account.login.email,
-							subject: "Welcome to aejobs, " + account.name.company,
+							subject: "Welcome from JobJupiter, " + account.name.company,
 							text: mailTemplate.plain,
 							html: mailTemplate.html
 						}, function(error, response){

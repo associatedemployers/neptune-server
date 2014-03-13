@@ -60,7 +60,7 @@ exports.addUser = function(req, res, next) {
 				transport.sendMail({
 					from: "no-reply@jobjupiter.com",
 					to: account.login.email,
-					subject: "Welcome to aejobs" + account.name.first,
+					subject: "Welcome from JobJupiter, " + account.name.first,
 					text: mailTemplate.plain,
 					html: mailTemplate.html
 				}, function(error, response){
