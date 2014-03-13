@@ -146,7 +146,7 @@ api.get('/ie/users', auth.get.guest, transformreq, employers.checkExistingUserEm
 api.get('/users/save-job', auth.get.user, users.saveJob);
 api.get('/users/fetch-saved-jobs', auth.get.user, users.fetchSavedJobs);
 api.get('/users/delete-saved-job', auth.get.user, users.deleteSavedJob);
-api.get('/users/recover-password', auth.get.guest, users.recoverPassword);
+api.get('/users/recover-password', auth.get.guest, users.checkUserPassword, users.checkEmployerPassword);
 /*api.put('/users', auth.user, users.updateUser);
 api.delete('/users', auth.user, users.deleteUser);*/
 

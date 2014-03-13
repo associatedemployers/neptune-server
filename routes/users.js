@@ -263,7 +263,7 @@ exports.deleteSavedJob = function (req, res, next) {
 	});
 }
 
-exports.recoverPassword = function (req, res, next) {
+exports.checkUserPassword = function (req, res, next) {
 	var email = req.query.email;
 	var matched = false;
 	if(recoveredEmails.length > 0) {
@@ -289,35 +289,60 @@ exports.recoverPassword = function (req, res, next) {
 					'error': err
 				});
 			} else if(!result) {
-				res.json({
-					'status': 'in error',
-					'error': 'No user found with that email.'
-				});
+				next();
 			} else {
-				var transport = nodemailer.createTransport("sendmail");
-				var mailTemplate = mailtemplate.passwordRecovery(email, result.name.first, result.login.password);
-				transport.sendMail({
-					from: "no-reply@jobjupiter.com",
-					to: email,
-					subject: "Here is your password reminder, " + result.name.first,
-					text: mailTemplate.plain,
-					html: mailTemplate.html
-				}, function(error, response){
-					if(error){
-						console.log(error);
-						res.json({
-							'status': 'in error',
-							'error': 'Email server error ' + error
-						});
-					} else {
-						res.json({
-							'status': 'ok'
-						});
-						transport.close(); // shut down the connection pool, no more messages
-					}
+				sendRecoveryEmail(email, result);
+				res.json({
+					'status': 'ok'
 				});
 			}
 		});
+	});
+}
+
+exports.checkEmployerPassword = function (req, res, next) {
+	var email = req.query.email;
+	db.collection('employerusers', function(err, collection) {
+		collection.findOne({ 'login.email': email }, function(err, result) {
+			if(err) {
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else if(!result) {
+				res.json({
+					'status': 'in error',
+					'error': 'no users found with that email'
+				});
+			} else {
+				sendRecoveryEmail(email, result);
+				res.json({
+					'status': 'ok'
+				});
+			}
+		});
+	});
+}
+
+function sendRecoveryEmail (email, result) {
+	var transport = nodemailer.createTransport("sendmail");
+	var mailTemplate = mailtemplate.passwordRecovery(email, result.name.first, result.login.password);
+	transport.sendMail({
+		from: "no-reply@jobjupiter.com",
+		to: email,
+		subject: "Here is your password reminder, " + result.name.first,
+		text: mailTemplate.plain,
+		html: mailTemplate.html
+	}, function(error, response){
+		if(error){
+			console.log(error);
+			res.json({
+				'status': 'in error',
+				'error': 'Email server error ' + error
+			});
+		} else {
+			transport.close(); // shut down the connection pool, no more messages
+		}
 	});
 }
 
