@@ -133,8 +133,14 @@ exports.autocomplete = function(req, res, next) {
 				location_results = [],
 				company_results = [];
 			items.forEach(function(item) {
+				if(!item.display) return;
+				if(!item.display.title) return;
 				title_results.push(item.display.title);
+				if(!item.location) return;
+				if(!item.location.city || !item.location.state) return;
 				location_results.push(item.location.city + ", " + item.location.state);
+				if(!item.name) return;
+				if(!item.name.company) return;
 				company_results.push(item.name.company);
 			});
 			var results = arrayUnique(title_results.concat(location_results).concat(company_results));
