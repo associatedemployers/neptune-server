@@ -229,8 +229,10 @@ exports.fetchSavedJobs = function (req, res, next) {
 				res.json({
 					'error': err
 				});
-			} else {
+			} else if(result.saved_jobs) {
 				res.json(result.saved_jobs);
+			} else {
+				res.json([]);
 			}
 		});
 	});
