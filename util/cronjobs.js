@@ -82,25 +82,31 @@ function runJobCheck () {
 }
 
 function iterateJobs (jobs) {
+	numExpired = 0;
+	var len = (jobs) ? jobs.length : 0;
+	var count = 0;
 	jobs.forEach(function(job) {
+		count++;
+		if(!job.time_stamp) return;
 		var dst = job.time_stamp.split(' ').shift().split('/'); //So we take the time stamp, split it into two based on the space between date and time, remove the last from our selection, and then split it again based on the '/' separator inbetween the dates. YYYY/MM/DD
 		var date = addDays(new Date(dst[0], (dst[1] - 1), dst[2]), 30).getTime();
 		var now = new Date().getTime();
 		if(date < now) {
 			expireJob(job._id);
 			pullListing(job.employer_id, job._id.toString());
-			notifications.expiredListing(job.display.title, job.name.company, job.notification_email);
+			notifications.listingExpired(job.display.title, job.name.company, job.notification_email);
 		}
+		if(count == len) finishUpExpiration();
 	});
-	finishUpExpiration();
 }
 
 function expireJob (id) {
 	db.collection('jobs', function(err, collection) {
-		collection.update({ '_id': new BSON.ObjectID(id) }, { $set: { 'active': false, 'inactive_reason': 'Set unactive via expiry bot' } }, function(err, num) {
+		collection.update({ '_id': id }, { $set: { 'active': false, 'inactive_reason': 'Set unactive via expiry bot' } }, function(err, num) {
 			if(err) {
 				console.error(err);
 			} else if(num) {
+				console.log('expired listing');
 				numExpired++;
 				analytics.logJobExpiration();
 			} else if(!num) {
@@ -119,8 +125,7 @@ function pullListing (empid, id) {
 }
 
 function finishUpExpiration () { 
-	console.log('jobchecker complete | Expired ' + numExpired + ' listings');
-	numExpired = 0;
+	console.log('jobchecker complete');
 }
 
 function addDays(date, days) {
