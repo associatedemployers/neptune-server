@@ -403,3 +403,94 @@ exports.removeApplication = function (req, res, next) {
 		});
 	});
 }
+
+exports.changeEmail = function (req, res, next) {
+	var q = req.query;
+	var password = q.password,
+		id = q.id,
+		email = q.email,
+		login_type = q.login_type;
+	if(!password || !email || !id || !login_type) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing fields'
+		});
+		return;
+	}
+	if(login_type == "employer") {
+		db.collection('employerusers', function(err, collection) {
+			collection.findAndModify({ '_id': new BSON.ObjectID(id), 'login.password': password }, [], { $set: { 'login.email': email } }, { remove: false }, function(err, result) {
+				if(err) {
+					console.log(err);
+					res.json({
+						'status': 'in error',
+						'error': err
+					});
+				} else {
+					if(!result) {
+						res.json({
+							'status': 'in error',
+							'error': 'Could not update email. Please contact us for assistance.'
+						});
+					} else {
+						next();
+					}
+				}
+			});
+		});
+	} else {
+		db.collection('users', function(err, collection) {
+			collection.findAndModify({ '_id': new BSON.ObjectID(id), 'login.password': password }, [], { $set: { 'login.email': email } }, { remove: false }, function(err, result) {
+				if(err) {
+					console.log(err);
+					res.json({
+						'status': 'in error',
+						'error': err
+					});
+				} else {
+					if(!result) {
+						res.json({
+							'status': 'in error',
+							'error': 'Could not update email. Please contact us for assistance.'
+						});
+					} else {
+						res.json({
+							'status': 'ok'
+						});
+					}
+				}
+			});
+		});
+	}
+}
+
+exports.checkExistingEmailEmployer = function (req, res, next) {
+	req.query.email = req.query.email.replace(/(^\s+|\s+$)/g,'');
+	db.collection('employerusers', function(err, collection) {
+		collection.findOne({'login.email': req.query.email}, function(err, result) {
+			if(result) {
+				res.send({
+					'status': 'in error',
+					'error': 'An account already exists with that email address.'
+				});
+			} else {
+				next();
+			}
+		});
+	});
+}
+
+exports.checkExistingEmailUser = function(req, res, next) {
+	db.collection('users', function(err, collection) {
+		collection.findOne({'login.email': req.query.email}, function(err, result) {
+			if(result) {
+				res.send({
+					'status': 'in error',
+					'error': 'An account already exists with that email address.'
+				});
+			} else {
+				next();
+			}
+		});
+	});
+}

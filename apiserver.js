@@ -149,6 +149,7 @@ api.get('/users/delete-saved-job', auth.get.user, users.deleteSavedJob);
 api.get('/users/recover-password', auth.get.guest, users.checkUserPassword, users.checkEmployerPassword);
 api.get('/users/fetch-applications', auth.get.user, users.fetchApplications);
 api.get('/users/remove-application', auth.get.user, users.removeApplication, employers.removeApplication);
+api.get('/users/change-email', auth.get.guest, users.checkExistingEmailEmployer, users.checkExistingEmailUser, users.changeEmail, employers.resendVerification);
 /*api.put('/users', auth.user, users.updateUser);
 api.delete('/users', auth.user, users.deleteUser);*/
 
@@ -180,6 +181,7 @@ api.get('/employer/account/saved-cards/delete', auth.get.employer, employers.del
 
 api.get('/employer/account/export-application/email', auth.get.employer, notifications.sendExportedApplication);
 api.get('/employer/account/export-applications/email', auth.get.employer, notifications.sendExportedApplications);
+api.get('/employer/resend-verification', auth.get.employer, employers.resendVerification);
 
 api.get('/account/change-password', auth.get.guest, users.changePassword);
 

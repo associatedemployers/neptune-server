@@ -220,7 +220,7 @@ exports.geocode = function(req, res, next) {
 
 exports.createEmployerAccount = function(req, res, next) {
 	var account = req.body.account_data;
-	
+	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'');
 	db.collection('employerusers', function(err, collection) {	
 		collection.insert(account, {safe:true}, function(err, result) {
 			if(err) {
@@ -720,6 +720,32 @@ exports.removeApplication = function (req, res, next) {
 					'status': 'ok'
 				});
 			}
+		});
+	});
+}
+
+exports.resendVerification = function (req, res, next) {
+	var id = req.query.id;
+	var verificationLink =	md5(req.query.email);
+	db.collection('verify', function(err, vrf) {
+		vrf.insert({ 'employer_id': id, 'link_address': verificationLink }, { safe: true }, function(err, result) {
+			var transport = nodemailer.createTransport("sendmail");
+			var mailTemplate = mailtemplate.newEmployer({ 'first': '', 'last': ''}, verificationLink);
+			transport.sendMail({
+				from: "no-reply@jobjupiter.com",
+				to: req.query.email,
+				subject: "JobJupiter Account Verification",
+				text: mailTemplate.plain,
+				html: mailTemplate.html
+			}, function(error, response){
+				if(error){
+					console.log(error);
+				}
+				res.json({
+					'status': 'ok'
+				});
+				transport.close(); // shut down the connection pool, no more messages
+			});
 		});
 	});
 }
