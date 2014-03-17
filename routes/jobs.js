@@ -195,6 +195,7 @@ exports.newApplication = function(req, res, next) {
 							'status': 'Mongo Error: ' + err
 						});
 					} else {
+						req.job_data = result;
 						next();
 					}
 				});

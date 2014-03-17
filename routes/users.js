@@ -124,13 +124,14 @@ exports.changePassword = function(req, res) {
 exports.newApplication = function(req, res, next) {
 	var id = req.params.id;
 	var user_data = req.query.user_data;
-	var time_stamp = req.query.time_stamp;
-	
 	var application = {
 		'job_id': id,
-		'time_stamp': time_stamp
-	}
-	
+		'resume': req.query.resume,
+		'cover_letter': req.query.cover_letter,
+		'time_stamp': user_data.time_stamp,
+		'job_title': req.job_data.display.title,
+		'company': req.job_data.name.company
+	};
 	db.collection('users', function(err, collection) {
 		collection.findAndModify({'_id': new BSON.ObjectID(user_data._id)}, [], { $addToSet: { 'applications': application } }, function(err, result) {
 			if(err) {
@@ -353,4 +354,50 @@ function filterRecovered (email) {
 			return em !== email;
 		});
 	}, (60 * 1000) * 10) //disallow resend for 10 minutes. Will reduce any spam that **may** occur.
+}
+
+exports.fetchApplications = function (req, res, next) {
+	var email = req.query.email;
+	var password = req.query.password;
+	var id = req.query.user_id;
+	if(!email || !password || !id) {
+		res.send('Invalid Request.');
+	}
+	db.collection('users', function(err, collection) {
+		collection.findOne({ '_id': new BSON.ObjectID(id), 'login.password': password, 'login.email': email }, { fields: { '_id': 0, 'applications': 1 } }, function(err, result) {
+			if(err) {
+				res.status(500).send(err);
+				console.error(err);
+			} else if(result.applications) {
+				res.json(result.applications);
+			} else {
+				res.json([]);
+			}
+		});
+	});
+}
+
+exports.removeApplication = function (req, res, next) {
+	var user = req.query.user,
+		job_id = req.query.job_id;
+	if(!user.password || !user.email || !user._id || !job_id) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing fields'
+		});
+		return
+	}
+	db.collection('users', function(err, collection) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(user._id), 'login.password': user.password, 'login.email': user.email }, [], { $pull: { 'applications': {'job_id': job_id } } }, { remove: false, new: true }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else {
+				next();
+			}
+		});
+	});
 }

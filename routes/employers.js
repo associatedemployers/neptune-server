@@ -614,15 +614,14 @@ exports.fetchApplications = function(req, res, next) {
 		return;
 	}
 	db.collection('jobs', function(err, collection) {
-		collection.find({ 'employer_id': employer_id, 'applicants': { $exists: true } }).sort( { 'time_stamp': -1 } ).toArray(function (err, results) {
+		collection.find({ 'employer_id': employer_id, 'applicants.0': { $exists: true } }).sort( { 'time_stamp': -1 } ).toArray(function (err, results) {
 			if(err) {
 				res.json({
 					"status": "in error",
 					"error": err
 				});
-			} else {
 				console.log(err);
-				console.log(results);
+			} else {
 				res.json(results);
 			}
 		});
@@ -700,6 +699,26 @@ exports.checkExpiration = function (req, res, next) {
 						'token': token.searchToken
 					});
 				}
+			}
+		});
+	});
+}
+
+exports.removeApplication = function (req, res, next) {
+	var user = req.query.user,
+		job_id = req.query.job_id;
+	db.collection('jobs', function(err, collection) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(job_id)}, [], { $pull: { 'applicants': { 'applicant._id': user._id } } }, { remove: false, new: true }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else {
+				res.json({
+					'status': 'ok'
+				});
 			}
 		});
 	});
