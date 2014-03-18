@@ -70,6 +70,18 @@ exports.countResumes = function (req, res, next) {
 	});
 }
 
+exports.countExpirations = function (req, res, next) {
+	db.collection('analytics', function (err, collection) {
+		collection.findOne({'type': 'expired_listings'}, function (err, result) {
+			if(err) {
+				console.error(err);
+			}
+			req.expirations = result.data;
+			next();
+		});
+	});
+}
+
 exports.countOrdersToday = function (req, res, next) {
 	db.collection('orders', function (err, collection) {
 		var date = new Date();
@@ -150,7 +162,8 @@ exports.countListings = function (req, res, next) {
 exports.sendQuick = function (req, res, next) {
 	res.json({
 		'resumes': req.resumes,
-		'orders': req.orders
+		'orders': req.orders,
+		'expirations': req.expirations
 	});
 }
 

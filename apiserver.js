@@ -199,7 +199,7 @@ api.get('/admin/add-user', auth.get.admin, administration.checkExistingEmail, ad
 api.get('/admin/edit-user', auth.get.admin, administration.editAdminUser);
 api.get('/admin/delete-admin-user', auth.get.admin, administration.deleteAdminUser);
 api.get('/admin/fetch-administration-users', auth.get.admin, administration.fetchAdminUsers);
-api.get('/admin/analytics/quick', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.sendQuick);
+api.get('/admin/analytics/quick', auth.get.admin, analytics.countResumes, analytics.countExpirations, analytics.countOrdersToday, analytics.sendQuick);
 api.get('/admin/analytics/full', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.countOrders, analytics.countEmployers, analytics.countActiveEmployers, analytics.countUsers, analytics.countListings, analytics.countApplications, analytics.sendFull);
 api.get('/admin/analytics/advanced', auth.get.admin, analytics.getDS, analytics.getCSemployers, analytics.getCSemployerusers, analytics.getCSjobs, analytics.getCSresumes, analytics.getCSusers, analytics.getCSorders, analytics.sendAdvanced);
 api.get('/admin/fetch-appdata', auth.get.admin, administration.fetchAppdata);
