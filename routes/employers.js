@@ -652,6 +652,10 @@ exports.saveLabels = function(req, res, next) {
 
 exports.unlockResumes = function (req, res, next) {
 	var order = req.query.order;
+	if(order.type == "featured_account") {
+		next();
+		return;
+	}
 	db.collection('employerusers', function(err, collection) {
 		collection.findAndModify({ '_id': new BSON.ObjectID(order.employer_id) }, [], { $set: { 'resume_search': order.expiration } }, { remove: false, new: true }, function(err, result) {
 			if(err) {
@@ -664,6 +668,42 @@ exports.unlockResumes = function (req, res, next) {
 				res.json({
 					'status': 'processed',
 					'expiration': order.expiration
+				});
+			}
+		});
+	});
+}
+
+exports.featureAccount = function (req, res, next) {
+	var order = req.query.order;
+	db.collection('employers', function(err, collection) {
+		collection.findAndModify({ 'employer_id': new BSON.ObjectID(order.employer_id) }, [], { $set: { 'featured': true, 'featured_expiration': order.featured_expiration } }, { remove: false, new: true }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else {
+				next();
+			}
+		});
+	});
+}
+
+exports.featureAccountListing = function (req, res, next) {
+	var order = req.query.order;
+	db.collection('employerusers', function(err, collection) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(order.employer_id) }, [], { $set: { 'featured': true, 'featured_expiration': order.featured_expiration } }, { remove: false, new: true }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else {
+				res.json({
+					'status': 'processed'
 				});
 			}
 		});

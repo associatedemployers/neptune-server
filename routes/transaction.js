@@ -102,6 +102,8 @@ exports.process = function(req, res, next) {
 				template = mailtemplate.newListing(order.billing.name, result.transaction.id, order.total);
 			} else if(order.type == "resumes") {
 				template = mailtemplate.resumeAccess(order.billing.name, result.transaction.id, order.total);
+			} else if(order.type == "featured_account") {
+				template = mailtemplate.featuredAccount(order.billing.name, result.transaction.id, order.total);
 			}
 			var transport = nodemailer.createTransport("sendmail");
 			transport.sendMail({
@@ -161,7 +163,7 @@ exports.storeCard = function(req, res, next) {
 			});
 		});
 	} else {
-		if(order.type == "resumes") {
+		if(order.type == "resumes" || order.type == "featured_account") {
 			next();
 		} else {
 			res.send({
