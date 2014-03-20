@@ -570,9 +570,12 @@ exports.fetchCards = function(req, res, next) {
 	db.collection('employerusers', function(err, collection) {
 		collection.find({ '_id': new BSON.ObjectID(employer_id) }, { fields: { '_id': 0, 'stored_cards': 1 } }).toArray(function(err, results) {
 			if(err) {
+				console.error(err);
 				res.send([]);
-			} else {
+			} else if(results) {
 				res.json(results[0].stored_cards);
+			} else {
+				res.json([]);
 			}
 		});
 	});
