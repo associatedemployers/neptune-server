@@ -572,7 +572,7 @@ exports.fetchCards = function(req, res, next) {
 			if(err) {
 				console.error(err);
 				res.send([]);
-			} else if(results) {
+			} else if(results[0].stored_cards) {
 				res.json(results[0].stored_cards);
 			} else {
 				res.json([]);
