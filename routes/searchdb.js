@@ -76,7 +76,6 @@ exports.resumeSearch = function(req, res, next) {
 				res.json([]);
 				return;
 			}
-			console.log(JSON.stringify(items));
 			items.forEach(function(item) {
 				var s = JSON.stringify(item).toLowerCase();
 				var matched = true;
