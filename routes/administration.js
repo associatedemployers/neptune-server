@@ -476,13 +476,13 @@ exports.appendUser = function (req, res, next) {
 					return;
 				} else {
 					if(result) {
-						counter++;
 						delete result.login.password;
 						resume.user = result;
-						req.results.push(resume);
-						if(counter == resarr.length) {
-							next();
-						}
+					}
+					req.results.push(resume);
+					counter++;
+					if(counter == resarr.length) {
+						next();
 					}
 				}
 			});
