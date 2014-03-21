@@ -480,7 +480,7 @@ exports.checkExistingEmailEmployer = function (req, res, next) {
 	});
 }
 
-exports.checkExistingEmailUser = function(req, res, next) {
+exports.checkExistingEmailUser = function (req, res, next) {
 	db.collection('users', function(err, collection) {
 		collection.findOne({'login.email': req.query.email}, function(err, result) {
 			if(result) {
@@ -494,3 +494,30 @@ exports.checkExistingEmailUser = function(req, res, next) {
 		});
 	});
 }
+
+/*exports.updatePreferences = function (req, res, next) {
+	var user_id = req.query.user_id;
+	var preferences = req.query.preferences;
+	if(!user_id || !preferences) {
+		res.json({
+			'status': 'in error',
+			'error': 'fields missing'
+		});
+	}
+	if(preferences.resume) { //compile for indexer
+		req.body.account_data = {};
+		req.body.account_data.resume = {
+			'path': preferences.resume,
+			'extension': preferences.resume.replace('../../', '').split('.').pop()
+		};
+		req.body.userid = user_id;
+	}
+	db.collection('users', function(err, collection) {
+		if(preferences.resume) {
+			collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $set: { ''
+				if(err) {
+					console.error(err);
+				}
+			});
+	});
+}*/

@@ -84,6 +84,13 @@ exports.indexFile = function (req, res, next) {
 	}	
 }
 
+exports.removeResume = function (req, res, next) {
+	db.collection('resumes', function(err, collection) {
+		collection.remove({ 'user_id': req.body.userid });
+		next();
+	});
+}
+
 exports.saveResume = function (req, res, next) {
 	db.collection('resumes', function(err, collection) {
 		collection.insert({ 'user_id': req.body.userid, 'indexed': req.indexed, 'extracted_text': req.extractedText }, function(err, result) {

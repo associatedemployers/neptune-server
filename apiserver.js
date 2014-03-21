@@ -150,6 +150,7 @@ api.get('/users/recover-password', auth.get.guest, users.checkUserPassword, user
 api.get('/users/fetch-applications', auth.get.user, users.fetchApplications);
 api.get('/users/remove-application', auth.get.user, users.removeApplication, employers.removeApplication);
 api.get('/users/change-email', auth.get.guest, users.checkExistingEmailEmployer, users.checkExistingEmailUser, users.changeEmail, employers.resendVerification);
+api.get('/users/update-preferences', auth.get.guest, users.updatePreferences, indexer.indexFile, indexer.saveResume);
 /*api.put('/users', auth.user, users.updateUser);
 api.delete('/users', auth.user, users.deleteUser);*/
 
