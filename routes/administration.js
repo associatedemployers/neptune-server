@@ -478,8 +478,8 @@ exports.appendUser = function (req, res, next) {
 					if(result) {
 						delete result.login.password;
 						resume.user = result;
+						req.results.push(resume);
 					}
-					req.results.push(resume);
 					counter++;
 					if(counter == resarr.length) {
 						next();
