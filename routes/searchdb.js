@@ -72,6 +72,11 @@ exports.resumeSearch = function(req, res, next) {
 	db.collection('resumes', function(err, collection) {
 		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) {
 			var results = [];
+			if(!items) {
+				res.json([]);
+				return;
+			}
+			console.log(JSON.stringify(items));
 			items.forEach(function(item) {
 				var s = JSON.stringify(item).toLowerCase();
 				var matched = true;
@@ -115,10 +120,12 @@ exports.appendUser = function (req, res, next) {
 						counter++;
 						delete result.login.password;
 						resume.user = result;
-						req.results.push(resume);
-						if(counter == resarr.length) {
-							next();
-						}
+					} else {
+						counter++;
+					}
+					req.results.push(resume);
+					if(counter == resarr.length) {
+						next();
 					}
 				}
 			});
