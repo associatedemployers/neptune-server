@@ -222,8 +222,8 @@ api.get('/admin/remove-image-from-rotation', auth.get.admin, administration.remo
 api.get('/admin/activate', auth.get.guest, administration.activateAccount);
 
 //Load Test Verfication
-api.get('/loaderio-32d4c71c2728a25b39d9f6cc89a715d0/', function(req, res){
-	var body = 'loaderio-32d4c71c2728a25b39d9f6cc89a715d0';
+api.get('/loaderio-0e9d2a52cecd9630bef3ccc93d4f120a/', function(req, res){
+	var body = 'loaderio-0e9d2a52cecd9630bef3ccc93d4f120a';
 	res.setHeader('Content-Type', 'text/plain');
 	res.setHeader('Content-Length', Buffer.byteLength(body));
 	res.end(body);
