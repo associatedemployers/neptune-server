@@ -495,7 +495,7 @@ exports.checkExistingEmailUser = function (req, res, next) {
 	});
 }
 
-/*exports.updatePreferences = function (req, res, next) {
+exports.updatePreferences = function (req, res, next) {
 	var user_id = req.query.user_id;
 	var preferences = req.query.preferences;
 	if(!user_id || !preferences) {
@@ -514,10 +514,32 @@ exports.checkExistingEmailUser = function (req, res, next) {
 	}
 	db.collection('users', function(err, collection) {
 		if(preferences.resume) {
-			collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $set: { ''
+			collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $set: { 'privacy': preferences.privacy } }, function(err, result) {
 				if(err) {
 					console.error(err);
+					res.json({
+						'status': 'in error',
+						'error': 'mongo err: ' + err
+					});
+				} else {
+					req.sendReq = true;
+					next();
 				}
 			});
+		} else {
+			collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $set: { 'privacy': preferences.privacy } }, function(err, result) {
+				if(err) {
+					console.error(err);
+					res.json({
+						'status': 'in error',
+						'error': 'mongo err: ' + err
+					});
+				} else {
+					res.json({
+						'status': 'ok',
+					});
+				}
+			});
+		}
 	});
-}*/
+}

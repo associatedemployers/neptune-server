@@ -43,28 +43,40 @@ exports.indexFile = function (req, res, next) {
 							if(ext == "rtf") {
 								textract("application/msword", path, { 'preserveLineBreaks': true }, function(err, text) {
 									if(err) {
-										console.log(err);
+										console.error(err);
 										req.indexed = false;
 										req.extractedText = "Error: " + err;
+										if(req.sendReq) {
+											res.json({
+												'status': 'in error',
+												'error': 'indexer err: ' + err
+											});
+										}
 									} else {
 										req.indexed = true;
 										req.extractedText = text;
+										next();
 									}
 									fs.unlink(path);
-									next();
 								});
 							} else {
 								textract(path, { 'preserveLineBreaks': true }, function(err, text) {
 									if(err) {
-										console.log(err);
+										console.error(err);
 										req.indexed = false;
 										req.extractedText = "Error: " + err;
+										if(req.sendReq) {
+											res.json({
+												'status': 'in error',
+												'error': 'indexer err: ' + err
+											});
+										}
 									} else {
 										req.indexed = true;
 										req.extractedText = text;
+										next();
 									}
 									fs.unlink(path);
-									next();
 								});
 							}
 						} else {
@@ -78,6 +90,12 @@ exports.indexFile = function (req, res, next) {
 					console.error('The address is unavailable. (%d)', fileresponse.statusCode);
 					req.indexed = false;
 					req.extractedText = "Error: " + fileresponse.statusCode;
+					if(req.sendReq) {
+						res.json({
+							'status': 'in error',
+							'error': 'indexer err: file not available.'
+						});
+					}
 				}
 			});
 		}
@@ -86,8 +104,19 @@ exports.indexFile = function (req, res, next) {
 
 exports.removeResume = function (req, res, next) {
 	db.collection('resumes', function(err, collection) {
-		collection.remove({ 'user_id': req.body.userid });
-		next();
+		collection.remove({ 'user_id': req.body.userid }, function(err, result) {
+			if(err) {
+				console.error(err);
+			} else {
+				if(req.preferences.privacy.index_resume == "true") {
+					next();
+				} else {
+					res.json({
+						'status': 'ok'
+					});
+				}
+			}
+		});
 	});
 }
 
@@ -95,7 +124,19 @@ exports.saveResume = function (req, res, next) {
 	db.collection('resumes', function(err, collection) {
 		collection.insert({ 'user_id': req.body.userid, 'indexed': req.indexed, 'extracted_text': req.extractedText }, function(err, result) {
 			if(err) {
-				console.log("Fatal Error on 'saveToUser': " + err);
+				console.error("Fatal Error on 'saveToUser': " + err);
+				if(req.sendReq) {
+					res.json({
+						'status': 'in error',
+						'error': 'indexer err: ' + err
+					});
+				}
+			} else {
+				if(req.sendReq) {
+					res.json({
+						'status': 'ok'
+					});
+				}
 			}
 		});
 	});
