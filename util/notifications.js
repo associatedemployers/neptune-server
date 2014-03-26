@@ -208,12 +208,25 @@ exports.deletedEmployer = function (req, res, next) {
 }
 
 exports.fetchAdminEmail = function (req, res, next) {
-	
+	db.collection('content', function(err, collection) {
+		collection.findOne({'page': 'administration_emails'}, function (err, result) {
+			if(err) {
+				console.error(err);
+				res.json({
+					'status': 'in error',
+					'error': err
+				});
+			} else {
+				req.adminEmails = result.content;
+				next();
+			}
+		});
+	});
 }
 
 exports.sendContactMessage = function (req, res, next) {
 	var mo = req.query.message;
-	var adminEmail = req.adminEmail;
+	var adminEmails = req.adminEmails.join(', ');
 	if(!mo.email || !mo.message || !mo.subject) {
 		res.json({
 			'status': 'in error',
