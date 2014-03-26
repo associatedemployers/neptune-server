@@ -127,6 +127,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXX */
 
 api.get('/fetch-page-content', auth.get.guest, users.fetchPageContent); //simple fetch content
 
+api.get('/send-message', auth.get.guest, notifications.fetchAdminEmail, notifications.sendContactMessage);
+
 //jobs
 api.get('/jobs', auth.get.guest, jobs.fetchAll); //function complete
 api.get('/jobs/:id', auth.get.guest, jobs.fetchByID); //function complete

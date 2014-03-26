@@ -206,3 +206,38 @@ exports.deletedEmployer = function (req, res, next) {
 		transport.close(); // shut down the connection pool, no more messages
 	});
 }
+
+exports.fetchAdminEmail = function (req, res, next) {
+	
+}
+
+exports.sendContactMessage = function (req, res, next) {
+	var mo = req.query.message;
+	var adminEmail = req.adminEmail;
+	if(!mo.email || !mo.message || !mo.subject) {
+		res.json({
+			'status': 'in error',
+			'error': 'Missing information.'
+		});
+	}
+	var transport = nodemailer.createTransport("sendmail");
+	transport.sendMail({
+		from: "Job Jupiter <no-reply@jobjupiter.com>",
+		to: adminEmail,
+		subject: 'New message: ' + mo.subject,
+		html: 'Message from ' + mo.name + ': \r\n' + mo.message + '/r/n /r/n' + 'Reply to: ' + mo.email
+	}, function(error, response) {
+		if(error){
+			console.error(error);
+			res.json({
+				'status': 'in error',
+				'error': 'Error sending message. ' + error
+			});
+		} else {
+			res.json({
+				'status': 'ok',
+			});
+		}
+		transport.close();
+	});
+}
