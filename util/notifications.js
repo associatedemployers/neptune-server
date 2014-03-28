@@ -217,7 +217,7 @@ exports.fetchAdminEmail = function (req, res, next) {
 					'error': err
 				});
 			} else {
-				req.adminEmails = result.content;
+				req.adminEmails = (!result) ? null : result.content;
 				next();
 			}
 		});
@@ -226,11 +226,17 @@ exports.fetchAdminEmail = function (req, res, next) {
 
 exports.sendContactMessage = function (req, res, next) {
 	var mo = req.query.message;
-	var adminEmails = req.adminEmails.join(', ');
+	var adminEmails = (!req.adminEmails) ? null : req.adminEmails.join(', ');
 	if(!mo.email || !mo.message || !mo.subject) {
 		res.json({
 			'status': 'in error',
 			'error': 'Missing information.'
+		});
+	}
+	if(!adminEmails) {
+		res.json({
+			'status': 'in error',
+			'error': 'Administration is not accepting messages at this time.'
 		});
 	}
 	var transport = nodemailer.createTransport("sendmail");
