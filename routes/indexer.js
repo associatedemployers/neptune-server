@@ -104,11 +104,11 @@ exports.indexFile = function (req, res, next) {
 
 exports.removeResume = function (req, res, next) {
 	db.collection('resumes', function(err, collection) {
-		collection.remove({ 'user_id': req.body.userid }, function(err, result) {
+		collection.remove({ 'user_id': req.query.user_id }, function(err, result) {
 			if(err) {
 				console.error(err);
 			} else {
-				if(req.preferences.privacy.index_resume == "true") {
+				if(req.query.preferences.privacy.index_resume == "true") {
 					next();
 				} else {
 					res.json({

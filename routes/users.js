@@ -504,16 +504,16 @@ exports.updatePreferences = function (req, res, next) {
 			'error': 'fields missing'
 		});
 	}
-	if(preferences.resume) { //compile for indexer
+	if(preferences.resume.path) { //compile for indexer
 		req.body.account_data = {};
 		req.body.account_data.resume = {
-			'path': preferences.resume,
-			'extension': preferences.resume.replace('../../', '').split('.').pop()
+			'path': preferences.resume.path,
+			'extension': preferences.resume.path.replace('../../', '').split('.').pop()
 		};
 		req.body.userid = user_id;
 	}
 	db.collection('users', function(err, collection) {
-		if(preferences.resume) {
+		if(preferences.resume.path) {
 			collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $set: { 'privacy': preferences.privacy } }, function(err, result) {
 				if(err) {
 					console.error(err);
