@@ -217,7 +217,7 @@ exports.fetchAdminEmail = function (req, res, next) {
 					'error': err
 				});
 			} else {
-				req.adminEmails = (!result.content) ? null : result.content;
+				req.adminEmails = (!result) ? false : result.content;
 				next();
 			}
 		});
