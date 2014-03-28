@@ -232,12 +232,14 @@ exports.sendContactMessage = function (req, res, next) {
 			'status': 'in error',
 			'error': 'Missing information.'
 		});
+		return;
 	}
 	if(!adminEmails) {
 		res.json({
 			'status': 'in error',
 			'error': 'Administration is not accepting messages at this time.'
 		});
+		return;
 	}
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
