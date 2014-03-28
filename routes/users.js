@@ -504,7 +504,7 @@ exports.updatePreferences = function (req, res, next) {
 			'error': 'fields missing'
 		});
 	}
-	if(preferences.resume.path) { //compile for indexer
+	if(preferences.resume) {//compile for indexer
 		req.body.account_data = {};
 		req.body.account_data.resume = {
 			'path': preferences.resume.path,
@@ -513,33 +513,23 @@ exports.updatePreferences = function (req, res, next) {
 		req.body.userid = user_id;
 	}
 	db.collection('users', function(err, collection) {
-		if(preferences.resume.path) {
-			collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $set: { 'privacy': preferences.privacy } }, function(err, result) {
-				if(err) {
-					console.error(err);
-					res.json({
-						'status': 'in error',
-						'error': 'mongo err: ' + err
-					});
-				} else {
+		collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $set: { 'privacy': preferences.privacy } }, function(err, result) {
+			if(err) {
+				console.error(err);
+				res.json({
+					'status': 'in error',
+					'error': 'mongo err: ' + err
+				});
+				return;
+			}
+			if(preferences.resume) {
 					req.sendReq = true;
 					next();
-				}
-			});
-		} else {
-			collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $set: { 'privacy': preferences.privacy } }, function(err, result) {
-				if(err) {
-					console.error(err);
-					res.json({
-						'status': 'in error',
-						'error': 'mongo err: ' + err
-					});
-				} else {
-					res.json({
-						'status': 'ok',
-					});
-				}
-			});
-		}
+			} else {
+				res.json({
+					'status': 'ok',
+				});
+			}
+		});
 	});
 }

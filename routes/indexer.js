@@ -26,6 +26,10 @@ db.open(function(err, db) {
 });
 
 exports.indexFile = function (req, res, next) {
+	if(!req.c) {
+		next();
+		return;
+	}
 	var resm = req.body.account_data.resume;	
 	if(resm) {
 		if(resm.path) {
@@ -111,9 +115,31 @@ exports.removeResume = function (req, res, next) {
 				if(req.query.preferences.privacy.index_resume == "true") {
 					next();
 				} else {
+					req.c = false;
+					next();
+				}
+			}
+		});
+	});
+}
+
+exports.saveToUser = function (req, res, next) {
+	db.collection('users', function(err, collection) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(req.query.user_id) }, [], { $set: { 'resume': req.body.account_data.resume } }, function(err, result) {
+			if(err) {
+				console.error(err);
+				res.json({
+					'status': 'in error',
+					'error': 'mongo err: ' + err
+				});
+				return;
+			} else {
+				if(!req.c) {
 					res.json({
 						'status': 'ok'
 					});
+				} else {
+					next();
 				}
 			}
 		});
