@@ -217,7 +217,7 @@ exports.fetchAdminEmail = function (req, res, next) {
 					'error': err
 				});
 			} else {
-				req.adminEmails = (!result) ? null : result.content;
+				req.adminEmails = (!result.content) ? null : result.content;
 				next();
 			}
 		});
@@ -242,7 +242,7 @@ exports.sendContactMessage = function (req, res, next) {
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
 		from: "Job Jupiter <no-reply@jobjupiter.com>",
-		to: adminEmail,
+		to: adminEmails,
 		subject: 'New message: ' + mo.subject,
 		html: 'Message from ' + mo.name + ': \r\n' + mo.message + '/r/n /r/n' + 'Reply to: ' + mo.email
 	}, function(error, response) {
