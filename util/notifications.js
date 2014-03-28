@@ -217,7 +217,7 @@ exports.fetchAdminEmail = function (req, res, next) {
 					'error': err
 				});
 			} else {
-				req.adminEmails = (!result) ? false : result.content;
+				req.adminEmails = (!result.content) ? false : result.content;
 				next();
 			}
 		});
@@ -246,7 +246,7 @@ exports.sendContactMessage = function (req, res, next) {
 		from: "Job Jupiter <no-reply@jobjupiter.com>",
 		to: adminEmails,
 		subject: 'New message: ' + mo.subject,
-		html: 'Message from ' + mo.name + ': \r\n' + mo.message + '/r/n /r/n' + 'Reply to: ' + mo.email
+		html: 'Message from ' + mo.name + ': <br />' + mo.message + '<br /><br />' + 'Reply to: ' + mo.email
 	}, function(error, response) {
 		if(error){
 			console.error(error);
