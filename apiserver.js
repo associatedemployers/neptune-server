@@ -177,6 +177,7 @@ api.get('/employer/resume-search', auth.get.employer, searchdb.resumeSearch, sea
 api.get('/employer/account/applications', auth.get.employer, employers.fetchApplications);
 api.get('/employer/account/applicant-labels/save', auth.get.employer, employers.saveLabels);
 api.post('/employer/sync', auth.post.employer, employers.geocode, employers.firstSync, employers.secondSync, employers.thirdSync, employers.syncOK);
+api.get('/employer/ie/sync', transformreq, auth.post.employer, employers.geocode, employers.firstSync, employers.secondSync, employers.thirdSync, employers.syncOK);
 api.get('/employer/account/listings', auth.get.employer, employers.fetchListings);
 api.get('/employer/account/orders', auth.get.employer, employers.fetchOrders);
 api.get('/employer/account/saved-cards', auth.get.employer, employers.fetchCards);
