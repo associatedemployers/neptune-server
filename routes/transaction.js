@@ -172,3 +172,81 @@ exports.storeCard = function(req, res, next) {
 		}
 	}
 }
+
+exports.validateCoupon = function(req, res, next) {
+	var couponCode = req.query.code,
+		emp_id = req.query.employer_id,
+		product = req.query.product,
+		sc, c;
+	if(!product || !emp_id || !couponCode) {	
+		res.send({
+			'status': 'in error',
+			'error': 'Missing information.'
+		});
+		return;
+	}
+	db.collection('content', function(err, collection) {
+		collection.findOne({'page': 'coupons'}, function(err, result) {
+			if(err) {
+				res.send({
+					'status': 'in error',
+					'error': err
+				});
+			} else {
+				result.content.forEach(function(coupon) {
+					if(coupon.code == couponCode) {
+						if(coupon.product == product) {
+							if(coupon.one_time == true) {
+								c = true;
+								var x = false;
+								coupon.used.forEach(function(emp) {
+									if(emp == emp_id) return x = true;
+								});
+								if(x) return;
+							}
+							if(coupon.expiration == "never") {
+								sc = coupon;
+							} else {
+								var dst = job.time_stamp.split(' ').shift().split('/');
+								var date = new Date(dst[0], (dst[1] - 1), dst[2]).getTime();
+								var now = new Date().getTime();
+								if(date < now) {
+									sc = coupon;
+								}
+							}
+						}
+					}
+				});
+				if(sc) {
+					delete sc.used;
+					if(c) {
+						collection.findAndModify({'page': 'coupons', 'used': { $in: [ emp_id ] } }, [], { $push: { 'used': emp_id } }, { remove: false, new: true }, function(err, result) {
+							if(err) {
+								console.error(err);
+								res.send({
+									'status': 'in error',
+									'error': err
+								});
+							} else {
+								res.send({
+									'status': 'ok',
+									'coupon': sc
+								});
+							}
+						});
+					} else {
+						res.send({
+							'status': 'ok',
+							'coupon': sc
+						});
+					}
+				} else {
+					res.send({
+						'status': 'in error',
+						'error': 'No coupon found with that code.'
+					});
+				}
+			}
+		});
+	});
+}

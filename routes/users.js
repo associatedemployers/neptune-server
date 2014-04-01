@@ -174,7 +174,7 @@ exports.fetchPageContent = function (req, res, next) {
 	db.collection('content', function(err, collection) {
 		collection.findOne({'page': page}, function(err, result) {
 			if(err) {
-				console.log(err);
+				console.error(err);
 				res.status(500).json({
 					'status': 'error',
 					'error': err
