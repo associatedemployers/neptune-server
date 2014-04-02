@@ -259,7 +259,7 @@ exports.validateCoupon = function(req, res, next) {
 								var dst = coupon.expiration.split(' ').shift().split('/');
 								var date = new Date(dst[0], (dst[1] - 1), dst[2]).getTime();
 								var now = new Date().getTime();
-								if(date < now) {
+								if(date > now) {
 									sc = coupon;
 								}
 							}
