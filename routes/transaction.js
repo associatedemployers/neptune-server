@@ -137,6 +137,26 @@ exports.storeOrder = function(req, res, next) {
 	db.collection('orders', function(err, collection) {	
 		collection.insert(order, {safe:true}, function(err, result) {
 			if(err) {
+				console.error(err);
+				res.send({
+					'status': "in error",
+					'error': err
+				});
+			} else {
+				next();
+			}
+		});
+	});
+}
+
+exports.oneTime = function(req, res, next) {
+	var couponCode = req.query.order.coupon,
+		emp_id = req.query.order.employer_id;
+	if(!couponCode || !req.query.order.coupon_onetime) return next();
+	db.collection('content', function(err, collection) {
+		collection.findAndModify({'page': 'coupons',  'content': { $elemMatch: { 'code': couponCode } } }, [], { $push: { 'content.$.used': emp_id } }, { remove: false, new: true }, function(err, result) {
+			if(err) {
+				console.error(err);
 				res.send({
 					'status': "in error",
 					'error': err
@@ -177,7 +197,7 @@ exports.validateCoupon = function(req, res, next) {
 	var couponCode = req.query.code,
 		emp_id = req.query.employer_id,
 		product = req.query.product,
-		sc, c;
+		sc;
 	if(!product || !emp_id || !couponCode) {	
 		res.send({
 			'status': 'in error',
@@ -196,12 +216,13 @@ exports.validateCoupon = function(req, res, next) {
 				result.content.forEach(function(coupon) {
 					if(coupon.code == couponCode) {
 						if(coupon.product == product) {
-							if(coupon.one_time == true) {
-								c = true;
+							if(coupon.one_time == "true") {
 								var x = false;
-								coupon.used.forEach(function(emp) {
-									if(emp == emp_id) return x = true;
-								});
+								if(coupon.used) {
+									coupon.used.forEach(function(emp) {
+										if(emp == emp_id) return x = true;
+									});
+								}
 								if(x) return;
 							}
 							if(coupon.expiration == "never") {
@@ -219,27 +240,10 @@ exports.validateCoupon = function(req, res, next) {
 				});
 				if(sc) {
 					delete sc.used;
-					if(c) {
-						collection.findAndModify({'page': 'coupons', 'used': { $in: [ emp_id ] } }, [], { $push: { 'used': emp_id } }, { remove: false, new: true }, function(err, result) {
-							if(err) {
-								console.error(err);
-								res.send({
-									'status': 'in error',
-									'error': err
-								});
-							} else {
-								res.send({
-									'status': 'ok',
-									'coupon': sc
-								});
-							}
-						});
-					} else {
-						res.send({
-							'status': 'ok',
-							'coupon': sc
-						});
-					}
+					res.send({
+						'status': 'ok',
+						'coupon': sc
+					});
 				} else {
 					res.send({
 						'status': 'in error',
