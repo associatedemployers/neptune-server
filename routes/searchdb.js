@@ -33,13 +33,13 @@ exports.process = function(req, res, next) {
 		return qs.length > 2
 	});
 	db.collection('jobs', function(err, collection) { //connect to jobs collection
-		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) { //press all jobs into an array
+		collection.find({ active: true }).sort( { time_stamp: -1 } ).toArray(function(err, items) { //press all jobs into an array
 			var results = [];
 			items.forEach(function(item) { //iterate over the items array
 				var s = JSON.stringify(item).toLowerCase(); //convert each item in items to a string
 				var matched = true;
 				sarray.forEach(function(qs) { //take the toArray converted query and iterate over it
-					if(s.search(qs.toLowerCase()) < 0) { //if regex finds the keyword in the item string,
+					if(s.search(qs.toLowerCase()) < 0) { //if regex !finds the keyword in the item string,
 						matched = false; //set matched to false
 					}
 				});

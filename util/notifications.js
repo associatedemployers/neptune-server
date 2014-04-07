@@ -39,7 +39,7 @@ exports.newApplication = function (req, res, next) {
 				path = __dirname + '/../emailed_resumes/' + filename;
 				var transport = nodemailer.createTransport("sendmail");
 				transport.sendMail({ //send the user notification
-					from: "notifications@jobjupiter.com",
+					from: "Job Jupiter <notifications@jobjupiter.com>",
 					to: req.user_email,
 					subject: "Good luck " + user_data.name.first + "!",
 					text: user_template.plain,
@@ -49,7 +49,7 @@ exports.newApplication = function (req, res, next) {
 						console.error(error);
 					} else {
 						transport.sendMail({
-							from: "notifications@jobjupiter.com",
+							from: "Job Jupiter <notifications@jobjupiter.com>",
 							to: req.employer_email,
 							subject: "New Application for " + job_info.display.title + ".",
 							text: employer_template.plain,
@@ -88,7 +88,7 @@ exports.sendExportedApplication = function(req, res, next) {
 	var template = mailtemplate.exportApplication(ao, employer_id);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({ //send the user notification
-		from: "notifications@jobjupiter.com",
+		from: "Job Jupiter <notifications@jobjupiter.com>",
 		to: emailTo,
 		subject: "Exported Application: " + ao.applicant.name.first + " " + ao.applicant.name.last,
 		text: template.plain,
@@ -119,7 +119,7 @@ exports.sendExportedApplications = function(req, res, next) {
 	var template = mailtemplate.exportApplications(aos, employer_id);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({ //send the apps
-		from: "notifications@jobjupiter.com",
+		from: "Job Jupiter <notifications@jobjupiter.com>",
 		to: emailTo,
 		subject: "Exported Applications from jobjupiter.com",
 		text: template.plain,
@@ -141,7 +141,7 @@ exports.sendNewAdminUser = function (req, res, next) {
 	var template = mailtemplate.newAdminUser(req.query.user, req.verfurl);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
-		from: "no-reply@jobjupiter.com",
+		from: "Job Jupiter <no-reply@jobjupiter.com>",
 		to: req.query.user.login.email,
 		subject: "Please activate your administrative account",
 		text: template.plain,
@@ -158,7 +158,7 @@ exports.listingStatusChange = function (req, res, next) {
 	var template = mailtemplate.listingStatusChange(req.query.active, req.query.reason, req.query.title);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
-		from: "notifications@jobjupiter.com",
+		from: "Job Jupiter <notifications@jobjupiter.com>",
 		to: req.query.email,
 		subject: "Listing Status Change for " + req.query.title,
 		text: template.plain,
@@ -176,7 +176,7 @@ exports.listingExpired = function (title, company, email) {
 	var template = mailtemplate.listingExpired(title, company);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
-		from: "notifications@jobjupiter.com",
+		from: "Job Jupiter <notifications@jobjupiter.com>",
 		to: email,
 		subject: title + ' has expired on jobjupiter.com',
 		text: template.plain,
@@ -194,7 +194,7 @@ exports.deletedEmployer = function (req, res, next) {
 	var template = mailtemplate.deletedEmployer(req.query.name.company);
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
-		from: "no-reply@jobjupiter.com",
+		from: "Job Jupiter <no-reply@jobjupiter.com>",
 		to: req.query.email,
 		subject: 'Your employer account has been removed on jobjupiter.com',
 		text: template.plain,
@@ -261,4 +261,31 @@ exports.sendContactMessage = function (req, res, next) {
 		}
 		transport.close();
 	});
+}
+
+exports.sendJobAlert = function (a) {
+	var compiledJobList = compileJobList(a.jobs_on_alert);
+	var template = mailtemplate.jobAlert(a, compiledJobList);
+	var transport = nodemailer.createTransport("sendmail");
+	transport.sendMail({
+		from: "Job Jupiter <notifications@jobjupiter.com>",
+		to: a.email,
+		subject: 'New activity for your job alert, ' + a.keywords.text,
+		generateTextFromHTML: true,
+		html: template
+	}, function(error, response) {
+		transport.close(); // shut down the connection pool, no more messages
+		if(error){
+			console.error(error);
+		} else {
+		}
+	});
+}
+
+function compileJobList (jobs) {
+	var html = "";
+	jobs.forEach(function(job) {
+		html = html + '<table class="container"><tr><td><table class="row"><tr><td class="wrapper"><table class="six columns"><tr><td class="left-text-pad"><a href="http://jobjupiter.com/#/job/' + job._id + '"><strong>' + job.display.title + ' @ ' + job.name.company + '</strong></a><br/><p>' + job.display.description.short + '</p></td><td class="expander"></td></tr></table></td><td class="wrapper last"><table class="six columns"><tr><td class="left-text-pad" style="text-align: right;"><p><strong>' + job.location.city + ', ' + job.location.state + '</strong></p></td><td class="expander"></td></tr></table></td></tr></table></td></tr></table><hr />';
+	});
+	return html;
 }

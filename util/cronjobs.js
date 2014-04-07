@@ -5,14 +5,15 @@ var mongo = require('mongodb'),
 	http = require('follow-redirects').http,
 	cronJob = require('cron').CronJob,
 	analytics = require('./analytics'),
-	notifications = require('./notifications');
+	notifications = require('./notifications'),
+	moment = require('moment');
 	
 var Server = mongo.Server,
     Db = mongo.Db,
     BSON = mongo.BSONPure;
 
-var timeToExecute;
-var numExpired = 0;
+var timeToExecute,
+	numExpired = 0;
 
 var server = new Server('localhost', 27017, {auto_reconnect: true});
 db = new Db('ae', server, {safe: true}, {strict: false});
@@ -49,6 +50,10 @@ var membercheck = new cronJob('* * * * *', function(){
 var jobcheck = new cronJob('* * * * *', function(){
 	timeToExecute = new Date().getTime();
 	runJobCheck();
+}, null, true);
+
+var alertTask = new cronJob('* * * * *', function(){
+	fetchAlerts();
 }, null, true);
 
 membercheck.start();
@@ -132,4 +137,112 @@ function addDays(date, days) {
 	var d2 = new Date(date);
 	d2.setDate(d2.getDate() + days);
 	return d2;
+}
+
+function fetchAlerts () {
+	db.collection('alerts', function(err, collection) {
+		collection.find().toArray(function(err, alerts) {
+			buildUpdateList(alerts);
+		});
+	});
+}
+
+function buildUpdateList (alerts) {
+	if(!alerts) return console.log("No alerts to process");
+	var t = moment(),
+		toUpdate = [];
+	
+	alerts.forEach(function (a) {
+		if(a.last_updated) {
+			var freq = parseFloat(a.frequency.value),
+				lu = moment(a.last_updated, "YYYY/MM/DD HH:mm:ss");
+			if(lu.isAfter(moment(t).subtract("d", freq))) return; //if the last update is after the current time minus the frequency, we don't need to update it
+		}
+		toUpdate.push(a); //if we made it here, push it into the update list
+	});
+	
+	iterateAlerts(toUpdate);
+}
+
+function iterateAlerts (alerts) {
+	var req = { query: {} },
+		toNotify = [],
+		t = moment();
+	var alertCount = alerts.length,
+		count = 0;
+	console.log('found ' + alerts.length + ' alerts');
+	if(!alerts) return console.log("No alerts to process");
+	alerts.forEach(function (a) {
+		count++;
+		var freq = parseFloat(a.frequency.value);
+		req.query.search_query = a.keywords.text;
+		var results = [],
+			query = req.query.search_query.replace(",", " "),
+			sarray = query.split(" "); //split the keywords
+			sarray = sarray.filter(function(qs) {
+				return qs.length > 2
+			});
+		db.collection('jobs', function(err, collection) { //connect to jobs collection
+			collection.find({ active: true }).sort( { time_stamp: -1 } ).toArray(function(err, items) { //press all jobs into an array
+				var results = [];
+				items.forEach(function(item) { //iterate over the items array
+					var s = JSON.stringify(item).toLowerCase(); //convert each item in items to a string
+					var matched = true;
+					sarray.forEach(function(qs) { //take the toArray converted query and iterate over it
+						if(s.search(qs.toLowerCase()) < 0) { //if regex !finds the keyword in the item string,
+							matched = false; //set matched to false
+						}
+					});
+					if(matched) {
+						results.push(item);	//push the item into the results array
+					}
+				});
+				if(results == [] || !results) return;
+				var nResults = [];
+				results.forEach(function (result) {
+					var lmatched = false;
+					if(a.notified_of) {
+						a.notified_of.forEach(function (job) {
+							if(job == result._id.toString()) lmatched = true;
+						});
+					}
+					var job_ts = moment(result.time_stamp, "YYYY/MM/DD HH:mm:ss"),
+						ts = moment(t).subtract("days", freq);
+					if(job_ts.isBefore(ts)) return;
+					if(!lmatched) nResults.push(result);
+				});
+				if(nResults.length < 1) return;
+				a.jobs_on_alert = nResults;
+				toNotify.push(a); //if we made it here, push it into the email list
+				if(count == alertCount) sendAlerts(toNotify);
+			});
+		});
+	});
+}
+
+function sendAlerts (alerts) {
+	if(!alerts) return console.log("No alerts to process");
+	alerts.forEach(function (a) {
+		notifications.sendJobAlert(a);
+		updateJBA(a);
+	});
+	finishUpAlerts(alerts);
+}
+
+function updateJBA (a) {
+	var job_list = [];
+	a.jobs_on_alert.forEach(function (job) {
+		job_list.push(job._id.toString());
+	});
+	db.collection('alerts', function (err, collection) {
+		collection.findAndModify({'_id': a._id}, [], { $set: { 'last_updated': moment().format("YYYY/MM/DD HH:mm:ss") }, $addToSet: { 'notified_of': { $each: job_list } } }, function(err, result) {
+			if(err) {
+				console.error(err);
+			}
+		});
+	});
+}
+
+function finishUpAlerts (alerts) {
+	console.log("Completed processing on " + alerts.length + " alerts");
 }
