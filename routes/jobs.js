@@ -41,6 +41,28 @@ exports.fetchFeatured = function(req, res) {
     });
 }
 
+exports.fetchRandomFeatured = function(req, res) {
+	var count = req.params.count;
+	if(!count) return res.json([]);
+	db.collection('jobs', function(err, collection) {
+		collection.find({active: true, featured: "true"}).toArray(function(err, items) {
+			if(!items) return res.json([]);
+			var len = items.length;
+			if(len <= count) return res.json(items);
+			var	rand = {
+				end: Math.floor(Math.random() * ((len - 1) - 0 + 1)) + 0
+			};
+			rand.start = rand.end - count;
+			if(rand.start < 0) { //catch if the array slicer will return < the count desired.
+				rand.start = 0;
+				rand.end = rand.start + count;
+			}
+			var a = items.slice(rand.start, rand.end);
+			res.json(a);
+		});
+    });
+}
+
 exports.fetchAll = function(req, res) {
 	 db.collection('jobs', function(err, collection) {
 		collection.find({'active': true}, { fields: { 'applicants': 0 } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {

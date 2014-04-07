@@ -137,7 +137,8 @@ api.get('/job/apply/:id', auth.get.guest, jobs.newApplication, users.newApplicat
 api.post('/jobs', auth.post.employer, jobs.geocode, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile); 
 api.get('/ie/job/add', auth.get.employer, transformreq, jobs.geocode, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile);
 /*api.delete('/jobs', auth.employer, jobs.deleteJob);*/ //Don't know if we will use this one?...
-api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured); 
+api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured);
+api.get('/random-featured/jobs/:count', auth.get.guest, jobs.fetchRandomFeatured);
 api.get('/search/jobs/location/:state', auth.get.guest, jobs.fetchByState, jobs.radiusSearch);
 
 //users
@@ -150,6 +151,7 @@ api.get('/users/fetch-saved-jobs', auth.get.user, users.fetchSavedJobs);
 api.get('/users/delete-saved-job', auth.get.user, users.deleteSavedJob);
 api.get('/users/recover-password', auth.get.guest, users.checkUserPassword, users.checkEmployerPassword);
 api.get('/users/fetch-applications', auth.get.user, users.fetchApplications);
+api.get('/users/fetch-job-alerts', auth.get.user, users.fetchJobAlerts);
 api.get('/users/remove-application', auth.get.user, users.removeApplication, employers.removeApplication);
 api.get('/users/change-email', auth.get.guest, users.checkExistingEmailEmployer, users.checkExistingEmailUser, users.changeEmail, employers.resendVerification);
 api.get('/users/update-preferences', auth.get.user, users.updatePreferences, indexer.removeResume, indexer.indexFile, indexer.saveToUser, indexer.saveResume);
@@ -166,8 +168,9 @@ api.get('/check-existing-email', auth.get.guest, employers.checkExistingUserEmai
 api.get('/check-existing-employer-company', auth.get.guest, employers.checkExistingCompany, employers.checkComplete);
 api.get('/validate-coupon', auth.get.employer, transaction.validateCoupon);
 api.get('/process-order', auth.get.employer, transaction.process, transaction.storeOrder, transaction.oneTime, transaction.storeCard, employers.unlockResumes, employers.featureAccount, employers.featureAccountListing);
-api.get('/featured/employers', auth.get.guest, employers.fetchFeatured); 
-api.get('/employer/verify-account', auth.get.guest, employers.verifyAccount, employers.writeAccount, employers.writeListing); 
+api.get('/featured/employers', auth.get.guest, employers.fetchFeatured);
+api.get('/random-featured/employers/:count', auth.get.guest, employers.fetchRandomFeatured);
+api.get('/employer/verify-account', auth.get.guest, employers.verifyAccount, employers.writeAccount, employers.writeListing);
 api.get('/employer/resume-search-token', auth.get.employer, employers.checkExpiration);
 api.get('/employer/resume-search', auth.get.employer, searchdb.resumeSearch, searchdb.appendUser, searchdb.sendResults);
 

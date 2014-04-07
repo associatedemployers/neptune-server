@@ -533,3 +533,24 @@ exports.updatePreferences = function (req, res, next) {
 		});
 	});
 }
+
+exports.fetchJobAlerts = function (req, res, next) {
+	var id = req.query.user_id;
+	if(!id) {
+		res.send('Invalid Request.');
+	}
+	db.collection('job-alerts', function(err, collection) {
+		collection.find({ 'user_id': new BSON.ObjectID(id) }).sort({ 'time_stamp': -1 }).toArray(function(err, results) {
+			if(err) {
+				res.status(500).send(err);
+				console.error(err);
+			} else {
+				if(results) {
+					res.json(results);
+				} else {
+					res.json([]);
+				}
+			}
+		});
+	});
+}
