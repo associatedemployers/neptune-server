@@ -155,6 +155,8 @@ api.get('/users/fetch-job-alerts', auth.get.user, users.fetchJobAlerts);
 api.get('/users/remove-application', auth.get.user, users.removeApplication, employers.removeApplication);
 api.get('/users/change-email', auth.get.guest, users.checkExistingEmailEmployer, users.checkExistingEmailUser, users.changeEmail, employers.resendVerification);
 api.get('/users/update-preferences', auth.get.user, users.updatePreferences, indexer.removeResume, indexer.indexFile, indexer.saveToUser, indexer.saveResume);
+api.get('/users/create-alert', auth.get.user, users.createJobAlert);
+api.get('/users/delete-alert', auth.get.user, users.deleteJobAlert);
 
 //employers
 api.get('/search/employers/location/:state', auth.get.guest, employers.fetchByState, employers.radiusSearch);

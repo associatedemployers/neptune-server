@@ -539,7 +539,7 @@ exports.fetchJobAlerts = function (req, res, next) {
 	if(!id) {
 		res.send('Invalid Request.');
 	}
-	db.collection('job-alerts', function(err, collection) {
+	db.collection('alerts', function(err, collection) {
 		collection.find({ 'user_id': new BSON.ObjectID(id) }).sort({ 'time_stamp': -1 }).toArray(function(err, results) {
 			if(err) {
 				res.status(500).send(err);
@@ -550,6 +550,51 @@ exports.fetchJobAlerts = function (req, res, next) {
 				} else {
 					res.json([]);
 				}
+			}
+		});
+	});
+}
+
+exports.createJobAlert = function (req, res, next) {
+	var alertObject = req.query.alert_object;
+	if(!alertObject || !alertObject.keywords || !alertObject.keywords.array || !alertObject.keywords.text || !alertObject.frequency || !alertObject.frequency.text || !alertObject.frequency.value || !alertObject.user_id || !alertObject.email || !alertObject.time_stamp) {
+		res.send('Invalid Request.');
+	}
+	db.collection('alerts', function(err, collection) {
+		collection.insert(alertObject, { upsert: true }, function(err, result) {
+			if(err) {
+				res.json({
+					status: 'in error',
+					error: err
+				});
+				console.error(err);
+			} else {
+				res.json({
+					status: 'ok'
+				});
+			}
+		});
+	});
+}
+
+exports.deleteJobAlert = function (req, res, next) {
+	var alert_id = req.query.alert_id,
+		user_id = req.query.user_id;
+	if(!alert_id || !user_id) {
+		res.send('Invalid Request.');
+	}
+	db.collection('alerts', function(err, collection) {
+		collection.remove({ '_id': new BSON.ObjectID(alert_id), 'user_id': user_id }, function(err, result) {
+			if(err) {
+				res.json({
+					status: 'in error',
+					error: err
+				});
+				console.error(err);
+			} else {
+				res.json({
+					status: 'ok'
+				});
 			}
 		});
 	});
