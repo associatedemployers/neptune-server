@@ -540,7 +540,7 @@ exports.fetchJobAlerts = function (req, res, next) {
 		res.send('Invalid Request.');
 	}
 	db.collection('alerts', function(err, collection) {
-		collection.find({ 'user_id': new BSON.ObjectID(id) }).sort({ 'time_stamp': -1 }).toArray(function(err, results) {
+		collection.find({ 'user_id': id }).sort({ 'time_stamp': -1 }).toArray(function(err, results) {
 			if(err) {
 				res.status(500).send(err);
 				console.error(err);
