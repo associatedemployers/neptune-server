@@ -26,6 +26,7 @@ administration = require('./routes/administration'),
 cronjobs = require('./util/cronjobs'),
 notifications = require('./util/notifications'),
 analytics = require('./util/analytics'),
+feedbuilder = require('./util/feedbuilder'),
 
 mailtemplates = require('./config/mail.templates'),
 token = require('./config/tokens');
@@ -226,6 +227,10 @@ api.get('/admin/update-content', auth.get.admin, administration.updateContent);
 api.get('/admin/add-image-to-rotation', auth.get.admin, administration.addImageToRotation);
 api.get('/admin/remove-image-from-rotation', auth.get.admin, administration.removeImageFromRotation);
 
+api.get('/admin/feeds/register', auth.get.admin, administration.registerFeed);
+api.get('/admin/feeds', auth.get.admin, administration.fetchFeeds);
+api.get('/admin/feeds/remove', auth.get.admin, administration.removeFeed);
+
 api.get('/admin/activate', auth.get.guest, administration.activateAccount);
 
 //Load Test Verfication
@@ -235,6 +240,21 @@ api.get('/loaderio-0e9d2a52cecd9630bef3ccc93d4f120a/', function(req, res){
 	res.setHeader('Content-Length', Buffer.byteLength(body));
 	res.end(body);
 });
+
+api.get('/simply-hired-xml/jobs.xml', feedbuilder.fetchAllJobs, feedbuilder.mapSimplyHiredFeed, feedbuilder.buildFeed, function(req, res){
+	var body = req.xml;
+	res.setHeader('Content-Type', 'text/xml;charset=utf-8;');
+	res.setHeader('Content-Length', Buffer.byteLength(body));
+	res.end(body);
+});
+
+api.get('/indeed-xml/jobs.xml', feedbuilder.fetchAllJobs, feedbuilder.mapIndeedFeed, feedbuilder.buildFeed, function(req, res){
+	var body = req.xml;
+	res.setHeader('Content-Type', 'text/xml;charset=utf-8;');
+	res.setHeader('Content-Length', Buffer.byteLength(body));
+	res.end(body);
+});
+
 
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
 END Route Controllers

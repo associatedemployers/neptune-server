@@ -115,7 +115,7 @@ function expireJob (id) {
 				numExpired++;
 				analytics.logJobExpiration();
 			} else if(!num) {
-				console.log('!!! Could not expire job (id: ' + id + ')');
+				console.error('!!! Could not expire job (id: ' + id + ')');
 			}
 		});
 	});
