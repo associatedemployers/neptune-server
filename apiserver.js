@@ -27,6 +27,7 @@ cronjobs = require('./util/cronjobs'),
 notifications = require('./util/notifications'),
 analytics = require('./util/analytics'),
 feedbuilder = require('./util/feedbuilder'),
+feedcontroller = require('./util/feedcontroller'),
 
 mailtemplates = require('./config/mail.templates'),
 token = require('./config/tokens');

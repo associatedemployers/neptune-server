@@ -746,3 +746,58 @@ exports.removeImageFromRotation = function (req, res, next) {
 		});
 	});
 }
+
+//feed operations
+exports.fetchFeeds = function (req, res, next) {
+	db.collection('feeds', function(err, collection) {
+		collection.find().sort({ 'time_stamp': -1 }).toArray(function(err, results) {
+			if(err) {
+				console.error(err);
+				res.send("Error: " + err);
+			} else {
+				res.json(results);
+			}
+		});
+	});
+}
+
+exports.registerFeed = function (req, res, next) {
+	var fo = req.query.feed;
+	if(!fo || !fo.name || !fo.api || !fo.api_options || !fo.system_options || !fo.time_stamp) return res.json({ status: 'in error', error: 'Missing information.' });
+	db.collection('feeds', function(err, collection) {
+		collection.insert(fo, function(err, result) {
+			if(err) {
+				console.error(err);
+				res.json({
+					status: 'in error',
+					error: err
+				});
+			} else {
+				res.json({
+					status: 'ok'
+				});
+			}
+		});
+	});
+}
+
+exports.removeFeed = function (req, res, next) {
+	var id = req.query.id;
+	if(!id) return res.json({ status: 'in error', error: 'Missing information.' });
+	db.collection('feeds', function(err, collection) {
+		collection.update({ '_id': new BSON.ObjectID(id.toString()) }, { $set: { 'remove': true } }, function(err, result) {
+			if(err) {
+				console.error(err);
+				res.json({
+					status: 'in error',
+					error: err
+				});
+			} else {
+				res.json({
+					status: 'ok'
+				});
+			}
+		});
+	});
+}
+//end feed operations
