@@ -44,6 +44,8 @@ exports.process = function(req, res, next) {
 					}
 				});
 				if(matched) {
+					delete item.display.description.long;
+					delete item.display.description.about;
 					results.push(item);	//push the item into the results array
 				}
 			});
@@ -157,7 +159,7 @@ exports.autocomplete = function(req, res, next) {
 }
 
 exports.sendResults = function(req, res) {
-	res.json(req.results);	
+	res.json(req.results);
 }
 
 function arrayUnique(array) {
