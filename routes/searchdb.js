@@ -26,32 +26,13 @@ db.open(function(err, db) {
 
 exports.process = function(req, res, next) {
 	if(!req.query.search_query) { res.json("No Keywords."); return; }
-	var results = [],
-		query = req.query.search_query.replace(",", " "),
-		sarray = query.split(" "); //split the keywords
-	sarray = sarray.filter(function(qs) {
-		return qs.length > 2
-	});
-	db.collection('jobs', function(err, collection) { //connect to jobs collection
-		collection.find({ active: true }).sort( { time_stamp: -1 } ).toArray(function(err, items) { //press all jobs into an array
-			var results = [];
-			items.forEach(function(item) { //iterate over the items array
-				var s = JSON.stringify(item).toLowerCase(); //convert each item in items to a string
-				var matched = true;
-				sarray.forEach(function(qs) { //take the toArray converted query and iterate over it
-					if(s.search(qs.toLowerCase()) < 0) { //if regex !finds the keyword in the item string,
-						matched = false; //set matched to false
-					}
-				});
-				if(matched) {
-					delete item.display.description.long;
-					delete item.display.description.about;
-					results.push(item);	//push the item into the results array
-				}
-			});
-			req.results = results;
-			next();
+	var query = req.query.search_query.replace(new RegExp(",", "g"), " "), count = 0;
+	db.command({ text: 'jobs', search: query }, function(err, curs) {
+		req.results = curs.results.filter(function(result) {
+			count++;
+			return (result.obj.active) ? count < 200 : false;
 		});
+		next();
 	});
 }
 
