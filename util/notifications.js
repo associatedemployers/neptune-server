@@ -270,7 +270,7 @@ exports.sendJobAlert = function (a) {
 	transport.sendMail({
 		from: "Job Jupiter <notifications@jobjupiter.com>",
 		to: a.email,
-		subject: 'New activity for your job alert, ' + a.keywords.text,
+		subject: a.jobs_on_alert.length + ' new jobs for your alert, ' + a.keywords.text,
 		generateTextFromHTML: true,
 		html: template
 	}, function(error, response) {
@@ -285,7 +285,7 @@ exports.sendJobAlert = function (a) {
 function compileJobList (jobs) {
 	var html = "";
 	jobs.forEach(function(job) {
-		html = html + '<table class="container"><tr><td><table class="row"><tr><td class="wrapper"><table class="six columns"><tr><td class="left-text-pad"><a href="http://jobjupiter.com/#/job/' + job._id + '"><strong>' + job.display.title + ' @ ' + job.name.company + '</strong></a><br/><p>' + job.display.description.short + '</p></td><td class="expander"></td></tr></table></td><td class="wrapper last"><table class="six columns"><tr><td class="left-text-pad" style="text-align: right;"><p><strong>' + job.location.city + ', ' + job.location.state + '</strong></p></td><td class="expander"></td></tr></table></td></tr></table></td></tr></table><hr />';
+		html = html + '<table class="container"><tr><td><table class="row"><tr><td class="wrapper"><table class="six columns"><tr><td class="left-text-pad"><a href="http://jobjupiter.com/#!/job/' + job._id + '"><strong>' + job.display.title + ' @ ' + job.name.company + '</strong></a><br/><p>' + job.display.description.short + '</p></td><td class="expander"></td></tr></table></td><td class="wrapper last"><table class="six columns"><tr><td class="left-text-pad" style="text-align: right;"><p><strong>' + job.location.city + ', ' + job.location.state + '</strong></p></td><td class="expander"></td></tr></table></td></tr></table></td></tr></table><hr />';
 	});
 	return html;
 }
