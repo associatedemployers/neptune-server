@@ -26,7 +26,7 @@ db.open(function(err, db) {
 });
 
 exports.indexFile = function (req, res, next) {
-	if(!req.c) {
+	if(req.rm && !req.c) {
 		next();
 		return;
 	}
@@ -115,6 +115,7 @@ exports.removeResume = function (req, res, next) {
 				if(req.query.preferences.privacy.index_resume == "true") {
 					next();
 				} else {
+					req.rm = true;
 					req.c = false;
 					next();
 				}
