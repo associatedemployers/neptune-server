@@ -38,8 +38,8 @@ api.configure(function () {
 	api.use(express.json());
 	api.use(express.urlencoded());
 	api.use(function (req, res, next) {
-		res.setHeader('Access-Control-Allow-Origin', '*'); //allowed websites
-		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT'); //allowed request types
+		res.setHeader('Access-Control-Allow-Origin', '*');//allowed websites
+		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, PUT');//allowed request types
 		res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
 		next();
 	});
@@ -127,16 +127,17 @@ var auth = {
 Route Controllers
 XXXXXXXXXXXXXXXXXXXXXXXXXX */
 
-api.get('/fetch-page-content', auth.get.guest, users.fetchPageContent); //simple fetch content
+api.get('/fetch-page-content', auth.get.guest, users.fetchPageContent);//simple fetch content
 
 api.get('/send-message', auth.get.guest, notifications.fetchAdminEmail, notifications.sendContactMessage);
 
 //jobs
-api.get('/jobs', auth.get.guest, jobs.fetchAll); 
-api.get('/jobs/:id', auth.get.guest, jobs.fetchByID); 
+api.get('/jobs', auth.get.guest, jobs.fetchAll);
+api.get('/jobs/:id', auth.get.guest, jobs.fetchByID);
+api.get('/job/expired/:id', auth.get.employer, jobs.fetchExpiredListing);
 api.get('/job/save/:id', auth.get.employer, jobs.saveListing);
 api.get('/job/apply/:id', auth.get.guest, jobs.newApplication, users.newApplication, users.fetchEmail, jobs.fetchEmail, jobs.fetchInfo, notifications.newApplication, analytics.logApplication);
-api.post('/jobs', auth.post.employer, jobs.geocode, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile); 
+api.post('/jobs', auth.post.employer, jobs.geocode, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile);
 api.get('/ie/job/add', auth.get.employer, transformreq, jobs.geocode, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile);
 /*api.delete('/jobs', auth.employer, jobs.deleteJob);*/ //Don't know if we will use this one?...
 api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured);
@@ -164,10 +165,10 @@ api.get('/users/delete-alert', auth.get.user, users.deleteJobAlert);
 api.get('/search/employers/location/:state', auth.get.guest, employers.fetchByState, employers.radiusSearch);
 api.get('/search/employers/tags', auth.get.guest, employers.fetchByTag);
 api.get('/fetchtags/employers', auth.get.guest, employers.fetchAllTags);
-api.get('/employers', auth.get.guest, employers.fetchAll); 
-api.get('/employers/:id', auth.get.guest, employers.fetchByID, employers.appendListings); 
+api.get('/employers', auth.get.guest, employers.fetchAll);
+api.get('/employers/:id', auth.get.guest, employers.fetchByID, employers.appendListings);
 api.post('/employers', auth.post.guest, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing);
-api.get('/ie/employers', auth.get.guest, transformreq, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing); //IE SUPPORT <10 
+api.get('/ie/employers', auth.get.guest, transformreq, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing);//IE SUPPORT <10 
 api.get('/check-existing-email', auth.get.guest, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.checkComplete);
 api.get('/check-existing-employer-company', auth.get.guest, employers.checkExistingCompany, employers.checkComplete);
 api.get('/validate-coupon', auth.get.employer, transaction.validateCoupon);
@@ -195,10 +196,10 @@ api.get('/account/change-password', auth.get.guest, users.changePassword);
 
 //login server
 api.post('/login', auth.post.guest, login.checkemp, login.checkusr);
-api.get('/ie/login', auth.get.guest, transformreq, login.checkemp, login.checkusr); //IE SUPPORT <10 
+api.get('/ie/login', auth.get.guest, transformreq, login.checkemp, login.checkusr);//IE SUPPORT <10 
 
 //search server
-api.get('/search', auth.get.guest, searchdb.process, searchdb.sendResults); 
+api.get('/search', auth.get.guest, searchdb.process, searchdb.sendResults);
 api.get('/autocomplete', auth.get.guest, searchdb.autocomplete, searchdb.sendResults);
 
 

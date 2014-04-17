@@ -111,6 +111,29 @@ exports.fetchByID = function(req, res) {
 	});
 }
 
+exports.fetchExpiredListing = function(req, res) {
+	var id = req.params.id;
+	if(!id) {
+		return res.send({error: "No ID..."});
+	}
+	db.collection('expired_jobs', function(err, collection) {
+		collection.findOne({'_id': new BSON.ObjectID(id)}, { fields: { 'applicants': 0 } }, function(err, item) {
+			if(err) {
+				console.error(err);
+				res.send({
+					error: err
+				});
+			} else if(item == null) {
+				res.send({
+					error: "Not Found."
+				})
+			} else {
+				res.json(item);
+			}
+		});
+	});
+}
+
 exports.geocode = function(req, res, next) {
 	var loc = req.body.listing.location;
 	if(!loc.state) {
