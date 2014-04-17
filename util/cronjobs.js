@@ -49,11 +49,18 @@ var membercheck = new cronJob('* * * * *', function(){
 
 var jobcheck = new cronJob('* * * * *', function(){
 	timeToExecute = new Date().getTime();
+	console.log("running job check");
 	runJobCheck();
 }, null, true);
 
 var alertTask = new cronJob('* * * * *', function(){
+	console.log('running alert task');
 	fetchAlerts();
+}, null, true);
+
+var orderManagementTask = new cronJob('* * * * *', function(){
+	console.log('running orderManagementTask');
+	fetchOrders();
 }, null, true);
 
 membercheck.start();
@@ -100,6 +107,15 @@ function iterateJobs (jobs) {
 			expireJob(job._id);
 			pullListing(job.employer_id, job._id.toString());
 			notifications.listingExpired(job.display.title, job.name.company, job.notification_email);
+			db.collection('expired_jobs', function (err, collection) {
+				collection.insert(job, function (err, result) {
+					if(err) {
+						console.error(err);
+					} else {
+						console.log('pushed to expired jobs');
+					}
+				});
+			});
 		}
 		if(count == len) finishUpExpiration();
 	});
@@ -107,7 +123,7 @@ function iterateJobs (jobs) {
 
 function expireJob (id) {
 	db.collection('jobs', function(err, collection) {
-		collection.update({ '_id': id }, { $set: { 'active': false, 'inactive_reason': 'Set unactive via expiry bot' } }, function(err, num) {
+		collection.update({ '_id': id }, { $set: { 'active': false, 'inactive_reason': 'Set unactive via expiry bot', 'remove_on': moment().add("d", 30).format("YYYY/MM/DD HH:mm:ss") } }, function(err, num) {
 			if(err) {
 				console.error(err);
 			} else if(num) {
@@ -124,7 +140,7 @@ function expireJob (id) {
 function pullListing (empid, id) {
 	db.collection('jobs', function(err, collection) {
 		collection.update({ '_id': new BSON.ObjectID(empid) }, { $pull: { 'listings': id } }, function(err, num) {
-			if(err) console.error(err);
+			if(err) console.error(err);;
 		});
 	});
 }
@@ -245,4 +261,49 @@ function updateJBA (a) {
 
 function finishUpAlerts (alerts) {
 	console.log("Completed processing on " + alerts.length + " alerts");
+}
+
+function fetchOrders () {
+	console.log("fetching orders");
+	db.collection('orders', function (err, collection) {
+		collection.find().toArray(function (err, results) {
+			if(err) console.error(err);
+			console.log('sending to iterator');
+			iterateOrders(results);
+		});
+	});
+}
+
+function iterateOrders (orders) {
+	if(!orders) return;
+	var currentTime = moment();
+	orders.forEach(function (order) {
+		console.log("On Order " + order._id);
+		if(moment(order.time_stamp, "YYYY/MM/DD HH:mm:ss").add("d", 60).isBefore(currentTime)) {
+			console.log("Sending order completed " + moment(order.time_stamp, "YYYY/MM/DD HH:mm:ss").fromNow() + " to Archive");
+			archiveOrder(order);
+		}
+	});
+}
+
+function archiveOrder (order) {
+	console.log("Archiving");
+	db.collection('orders_archived', function (err, collection) {
+		collection.insert(order, function (err, result) {
+			if(err) console.error(err);
+			console.log("Send to Delete");
+			deleteOrder(order._id.toString());
+		});
+	});
+}
+
+function deleteOrder (id) {
+	console.log("Deleting");
+	if(!id) console.error("Expected id, got " + id);
+	db.collection('orders', function (err, collection) {
+		collection.remove({'_id': new BSON.ObjectID(id)}, function (err, result) {
+			if(err) console.error(err);
+			console.log("Deleted");
+		});
+	});
 }
