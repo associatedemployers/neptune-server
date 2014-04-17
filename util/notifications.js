@@ -171,14 +171,14 @@ exports.listingStatusChange = function (req, res, next) {
 	});
 }
 
-exports.listingExpired = function (title, company, email) {
-	if(!email) { return }
-	var template = mailtemplate.listingExpired(title, company);
+exports.listingExpired = function (title, company, email, id) {
+	if(!email) return;
+	var template = mailtemplate.listingExpired(title, company, "http://jobjupiter.com/#!/renew/" + id.toString());
 	var transport = nodemailer.createTransport("sendmail");
 	transport.sendMail({
 		from: "Job Jupiter <notifications@jobjupiter.com>",
 		to: email,
-		subject: title + ' has expired on jobjupiter.com',
+		subject: 'Your listing "' + title + '" has expired on jobjupiter.com',
 		text: template.plain,
 		html: template.html
 	}, function(error, response) {

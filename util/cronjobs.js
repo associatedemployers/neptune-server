@@ -106,16 +106,14 @@ function iterateJobs (jobs) {
 		if(date < now) {
 			expireJob(job._id);
 			pullListing(job.employer_id, job._id.toString());
-			notifications.listingExpired(job.display.title, job.name.company, job.notification_email);
-			db.collection('expired_jobs', function (err, collection) {
-				collection.insert(job, function (err, result) {
-					if(err) {
-						console.error(err);
-					} else {
-						console.log('pushed to expired jobs');
-					}
+			if(!job.fed_from) {
+				notifications.listingExpired(job.display.title, job.name.company, job.notification_email, job._id);
+				db.collection('expired_jobs', function (err, collection) {
+					collection.insert(job, function (err, result) {
+						if(err) console.error(err);
+					});
 				});
-			});
+			}
 		}
 		if(count == len) finishUpExpiration();
 	});
