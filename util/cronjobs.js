@@ -276,7 +276,6 @@ function iterateOrders (orders) {
 	if(!orders) return;
 	var currentTime = moment();
 	orders.forEach(function (order) {
-		console.log("On Order " + order._id);
 		if(moment(order.time_stamp, "YYYY/MM/DD HH:mm:ss").add("d", 60).isBefore(currentTime)) {
 			console.log("Sending order completed " + moment(order.time_stamp, "YYYY/MM/DD HH:mm:ss").fromNow() + " to Archive");
 			archiveOrder(order);

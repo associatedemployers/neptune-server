@@ -162,7 +162,9 @@ var feedsController = {
 		});
 	},
 	checkDuplicates: function (data, feed) {
-		if(data.results.length > parseFloat(feed.api_options.limit)) data.results.splice(0, parseFloat(feed.api_options.limit) - 1);
+		if(data.results.length > parseFloat(feed.api_options.limit)) {
+			data.results = data.results.slice(0, parseFloat(feed.api_options.limit) - 1);
+		}
 		console.log('checking for duplicates');
 		var keys = [];
 		console.log('building keys**');

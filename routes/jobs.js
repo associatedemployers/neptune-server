@@ -113,8 +113,8 @@ exports.fetchByID = function(req, res) {
 
 exports.fetchExpiredListing = function(req, res) {
 	var id = req.params.id;
-	if(!id) {
-		return res.send({error: "No ID..."});
+	if(id.length !== 24 || !id) {
+		return res.send({error: "Not a valid ID"});
 	}
 	db.collection('expired_jobs', function(err, collection) {
 		collection.findOne({'_id': new BSON.ObjectID(id)}, { fields: { 'applicants': 0 } }, function(err, item) {
