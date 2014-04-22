@@ -260,16 +260,12 @@ exports.getCSjobs = function (req, res, next) {
 }
 
 exports.fetchOrderData = function (res, res, next) {
-	console.log("Fetching Orders For Data Crunch...");
 	db.collection('orders', function (err, collection) {
 		collection.find().toArray(function (err, orders) {
 			if(err) console.error(err);
 			console.log("Got " + orders.length + " orders");
 			if(!orders) return res.json(null);
-			console.log("--->Sorting Orders");
 			var ordersThisMonth = sortOrdersThisMonth(orders);
-			console.log("SORTED ORDERS");
-			console.log("--->Crunching Data");
 			res.json(crunchOrderData(ordersThisMonth));
 		});
 	});

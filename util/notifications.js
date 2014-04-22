@@ -289,3 +289,17 @@ function compileJobList (jobs) {
 	});
 	return html;
 }
+
+exports.defeaturedEmployer = function (employer) {
+	var template = mailtemplate.defeaturedEmployer(employer);
+	var transport = nodemailer.createTransport("sendmail");
+	transport.sendMail({
+		from: "Job Jupiter <no-reply@jobjupiter.com>",
+		to: employer.login.email,
+		subject: employer.name.company + ', your featured account has expired.',
+		html: template,
+	}, function(error, response) {
+		if(error) console.error(error);
+		transport.close();
+	});
+}

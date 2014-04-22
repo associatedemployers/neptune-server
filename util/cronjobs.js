@@ -63,6 +63,11 @@ var orderManagementTask = new cronJob('* * * * *', function(){
 	fetchOrders();
 }, null, true);
 
+var employerManagementTask = new cronJob('* * * * *', function(){
+	console.log('running employerManagementTask');
+	fetchEmployers();
+}, null, true);
+
 membercheck.start();
 jobcheck.start();
 
@@ -301,6 +306,42 @@ function deleteOrder (id) {
 		collection.remove({'_id': new BSON.ObjectID(id)}, function (err, result) {
 			if(err) console.error(err);
 			console.log("Deleted");
+		});
+	});
+}
+
+function fetchEmployers () {
+	db.collection('employerusers', function (err, collection) {
+		collection.find().toArray(function (err, results) {
+			if(err) console.error(err);
+			iterateEmployers(results);
+		});
+	});
+}
+
+function iterateEmployers (employers) {
+	var currentTime = moment();
+	employers.forEach(function (employer) {
+		if(employer.featured && currentTime.isAfter(moment(employer.featured_expiration, "YYYY/MM/DD HH:mm:ss"))) {
+			defeatureEmployer(employer._id);
+			notifications.defeaturedEmployer(employer);
+		}
+	});
+}
+
+function defeatureEmployer (id) {
+	db.collection('employerusers', function (err, collection) {
+		collection.update({ '_id': new BSON.ObjectID(id.toString()) }, { $set: { 'featured': false, 'featured_expiration': null } }, function (err, result) {
+			if(err) console.error(err);
+			defeatureEmployerListing(id);
+		});
+	});
+}
+
+function defeatureEmployerListing (id) {
+	db.collection('employers', function (err, collection) {
+		collection.update({ 'employer_id': id.toString() }, { $set: { 'featured': false, 'featured_expiration': null } }, function (err, result) {
+			if(err) console.error(err);
 		});
 	});
 }
