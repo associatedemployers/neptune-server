@@ -68,7 +68,8 @@ exports.fetchAll = function(req, res) {
 		active: true
 	},
 		qFilters = req.query.filters,
-		limit = req.query.limit || 100;
+		limit = req.query.limit || 100,
+		page = req.query.page || 1;
 
 	if(qFilters) {
 		for (var key in qFilters) {
@@ -87,7 +88,7 @@ exports.fetchAll = function(req, res) {
 					'alternate_url': 0
 				}
 			}
-		).limit(limit).sort({ time_stamp: -1 }).toArray(function(err, items) {
+		).skip((page - 1) * limit).limit(limit).sort({ time_stamp: -1 }).toArray(function(err, items) {
 			if(err) console.error(err);
 			res.json(items);
 		});
