@@ -68,8 +68,9 @@ exports.fetchAll = function(req, res) {
 		active: true
 	},
 		qFilters = req.query.filters,
-		limit = req.query.limit || 100,
-		page = req.query.page || 1;
+		limit = parseFloat(req.query.limit) || 100,
+		page = parseFloat(req.query.page) || 1,
+		sort = req.query.sort;
 
 	if(qFilters) {
 		for (var key in qFilters) {
@@ -78,7 +79,7 @@ exports.fetchAll = function(req, res) {
 			}
 		}
 	}
-	
+	console.log(limit, page);	
 	db.collection('jobs', function(err, collection) {
 		collection.find(filters, {
 				fields: {
@@ -88,7 +89,7 @@ exports.fetchAll = function(req, res) {
 					'alternate_url': 0
 				}
 			}
-		).skip((page - 1) * limit).limit(limit).sort({ time_stamp: -1 }).toArray(function(err, items) {
+		).sort({ time_stamp: -1 }).skip((page - 1) * limit).limit(limit).toArray(function(err, items) {
 			if(err) console.error(err);
 			res.json(items);
 		});
