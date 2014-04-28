@@ -71,7 +71,9 @@ exports.fetchAll = function(req, res) {
 		limit = parseFloat(req.query.limit) || 100,
 		page = parseFloat(req.query.page) || 1,
 		sort = req.query.sort;
-
+	for (var k in sort) {
+		sort[k] = parseFloat(sort[k]);
+	}
 	if(qFilters) {
 		for (var key in qFilters) {
 			if(!filters.hasOwnProperty(key)) {// if we are not on a default
