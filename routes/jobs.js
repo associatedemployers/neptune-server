@@ -89,7 +89,7 @@ exports.fetchAll = function(req, res) {
 					'alternate_url': 0
 				}
 			}
-		).sort({ time_stamp: -1 }).skip((page - 1) * limit).limit(limit).toArray(function(err, items) {
+		).sort(sort).skip((page - 1) * limit).limit(limit).toArray(function(err, items) {
 			if(err) console.error(err);
 			res.json(items);
 		});
