@@ -64,15 +64,34 @@ exports.fetchRandomFeatured = function(req, res) {
 }
 
 exports.fetchAll = function(req, res) {
-	 db.collection('jobs', function(err, collection) {
-		collection.find({'active': true}, { fields: { 'applicants': 0, 'display.description.long': 0, 'display.description.about': 0, 'alternate_url': 0 } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
-            if(req.query.callback !== null) {
-				res.jsonp(items);
-			} else {
-				res.json(items);
+	var filters = {
+		active: true
+	},
+		qFilters = req.query.filters,
+		limit = req.query.limit || 100;
+
+	if(qFilters) {
+		for (var key in qFilters) {
+			if(!filters.hasOwnProperty(key)) {// if we are not on a default
+				filters[key] = qFilters[key];//  overwrite it
 			}
-        });
-    });
+		}
+	}
+	
+	db.collection('jobs', function(err, collection) {
+		collection.find(filters, {
+				fields: {
+					'applicants': 0,
+					'display.description.long': 0,
+					'display.description.about': 0,
+					'alternate_url': 0
+				}
+			}
+		).limit(limit).sort({ time_stamp: -1 }).toArray(function(err, items) {
+			if(err) console.error(err);
+			res.json(items);
+		});
+	});
 }
 
 exports.fetchByID = function(req, res) {

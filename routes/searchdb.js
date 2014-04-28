@@ -28,10 +28,22 @@ exports.process = function(req, res, next) {
 	if(!req.query.search_query) { res.json("No Keywords."); return; }
 	var query = req.query.search_query.replace(new RegExp(",", "g"), " "), count = 0;
 	db.command({ text: 'jobs', search: query }, function(err, curs) {
-		req.results = curs.results.filter(function(result) {
+		var prefiltered = curs.results.filter(function(result) {
 			count++;
 			return (result.obj.active) ? count < 200 : false;
+		}), allocated = [];
+		req.results = [];
+		prefiltered.forEach(function (item) {
+			if(!item.obj.fed_from) {
+				req.results.push(item);
+			} else {
+				allocated.push(item);
+			}
 		});
+		var sorted = allocated.sort(function (a, b) {
+			return (parseFloat(a.score) > parseFloat(b.score)) ? 0 : 1;
+		});
+		req.results = req.results.concat(sorted);
 		next();
 	});
 }
