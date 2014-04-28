@@ -93,7 +93,27 @@ exports.fetchAll = function(req, res) {
 			}
 		).sort(sort).skip((page - 1) * limit).limit(limit).toArray(function(err, items) {
 			if(err) console.error(err);
-			res.json(items);
+			if(req.query.location) {
+				var loc = req.query.location;
+					results = [],
+					manifest = {
+						'latitude': loc.lat,
+						'longitude': loc.lng
+					};
+				items.forEach(function(item) { //iterate over the items array
+					if(!item.location.geo) { return; }
+					var item_geo = {
+						'latitude': item.location.geo.lat,
+						'longitude': item.location.geo.lng
+					}
+					if(haversine(manifest, item_geo, {'unit': 'mi'}) < loc.radius) { //distance less than search radius
+						results.push(item);	//push the item into the results array
+					}
+				});
+				res.json(results);
+			} else {
+				res.json(items);
+			}
 		});
 	});
 }
