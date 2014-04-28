@@ -19,7 +19,7 @@ db = new Db('ae', server, {safe: true}, {strict: false});
 
 db.open(function(err, db) {
     if(!err) {
-        db.collection('jobs', function(err, collection) {
+        db.collection('jobs', function (err, collection) {
             if (err) {
                 console.log(exception['1001_2']);
             }
@@ -30,7 +30,7 @@ db.open(function(err, db) {
 });
 
 exports.fetchFeatured = function(req, res) {
-	 db.collection('jobs', function(err, collection) {
+	 db.collection('jobs', function (err, collection) {
 		collection.find({active: true, featured: "true"}, { fields: { 'applicants': 0 } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
 			if(err) {
 				res.send("error: " + err);	
@@ -44,8 +44,8 @@ exports.fetchFeatured = function(req, res) {
 exports.fetchRandomFeatured = function(req, res) {
 	var count = req.params.count;
 	if(!count) return res.json([]);
-	db.collection('jobs', function(err, collection) {
-		collection.find({active: true, featured: "true"}).toArray(function(err, items) {
+	db.collection('jobs', function (err, collection) {
+		collection.find({active: true, featured: "true"}).toArray(function (err, items) {
 			if(!items) return res.json([]);
 			var len = items.length;
 			if(len <= count) return res.json(items);
@@ -61,6 +61,26 @@ exports.fetchRandomFeatured = function(req, res) {
 			res.json(a);
 		});
     });
+}
+
+exports.categoryCount = function (req, res) {
+	var cats = req.query.categories;
+	if(!cats) return res.json({ status: 'in error', error: 'No categories supplied.' });
+	db.collection('jobs', function (err, collection) {
+		collection.find({'active': true, 'display.category': { $exists: true } }).toArray(function (err, items) {
+			if(err) console.error(err);
+			var response = [], clen = cats.length;
+			for (var i = 0; i < clen; i++) {
+				var count = 0;
+				items.forEach(function (item) {
+					if(item.display.category == cats[i]) count++;
+				});
+				var lb = (count > 0) ? cats[i] + " (" + count + ")" : cats[i];
+				response.push(lb);
+			}
+			res.send(response);
+		});
+	})
 }
 
 exports.fetchAll = function(req, res) {
@@ -81,8 +101,7 @@ exports.fetchAll = function(req, res) {
 			}
 		}
 	}
-	console.log(limit, page);	
-	db.collection('jobs', function(err, collection) {
+	db.collection('jobs', function (err, collection) {
 		collection.find(filters, {
 				fields: {
 					'applicants': 0,
@@ -91,7 +110,7 @@ exports.fetchAll = function(req, res) {
 					'alternate_url': 0
 				}
 			}
-		).sort(sort).skip((page - 1) * limit).limit(limit).toArray(function(err, items) {
+		).sort(sort).skip((page - 1) * limit).limit(limit).toArray(function (err, items) {
 			if(err) console.error(err);
 			if(req.query.location) {
 				var loc = req.query.location;
@@ -128,8 +147,8 @@ exports.fetchByID = function(req, res) {
 		}
 		return;
 	}
-	db.collection('jobs', function(err, collection) {
-		collection.findOne({'_id':new BSON.ObjectID(id)}, { fields: { 'applicants': 0 } }, function(err, item) {
+	db.collection('jobs', function (err, collection) {
+		collection.findOne({'_id':new BSON.ObjectID(id)}, { fields: { 'applicants': 0 } }, function (err, item) {
 			if(err) {
 				if(req.query.callback !== null) {
 					res.status(404).jsonp("Not Found");

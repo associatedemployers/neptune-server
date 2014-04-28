@@ -134,6 +134,7 @@ api.get('/send-message', auth.get.guest, notifications.fetchAdminEmail, notifica
 //jobs
 api.get('/jobs', auth.get.guest, jobs.fetchAll);
 api.get('/jobs/:id', auth.get.guest, jobs.fetchByID);
+api.get('/job/category-count', auth.get.guest, jobs.categoryCount);
 api.get('/job/expired/:id', auth.get.employer, jobs.fetchExpiredListing);
 api.get('/job/save/:id', auth.get.employer, jobs.saveListing);
 api.get('/job/apply/:id', auth.get.guest, jobs.newApplication, users.newApplication, users.fetchEmail, jobs.fetchEmail, jobs.fetchInfo, notifications.newApplication, analytics.logApplication);
