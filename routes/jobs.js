@@ -31,7 +31,14 @@ db.open(function(err, db) {
 
 exports.fetchFeatured = function(req, res) {
 	 db.collection('jobs', function (err, collection) {
-		collection.find({active: true, featured: "true"}, { fields: { 'applicants': 0 } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find({active: true, featured: "true"}, {
+				fields: {
+					'applicants': 0,
+					'display.description.long': 0,
+					'display.description.about': 0,
+					'alternate_url': 0
+				}
+			}).sort( { time_stamp: -1 } ).toArray(function(err, items) {
 			if(err) {
 				res.send("error: " + err);	
 			} else {

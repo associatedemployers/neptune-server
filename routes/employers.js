@@ -36,7 +36,7 @@ db.open(function(err, db) {
 
 exports.fetchFeatured = function(req, res) {
 	db.collection('employers', function(err, collection) {
-		collection.find({featured: true}).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find({ featured: true }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
 				res.jsonp(items);
 			} else {
