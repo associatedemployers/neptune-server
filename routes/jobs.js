@@ -104,7 +104,13 @@ exports.fetchAll = function(req, res) {
 	if(qFilters) {
 		for (var key in qFilters) {
 			if(!filters.hasOwnProperty(key)) {// if we are not on a default
-				filters[key] = qFilters[key];//  overwrite it
+				if(qFilters[key] == 'NOT_SET') {
+					filters[key] = {
+						$exists: false
+					}
+				} else {
+					filters[key] = qFilters[key];// overwrite it
+				}
 			}
 		}
 	}
