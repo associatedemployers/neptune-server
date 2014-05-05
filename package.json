@@ -1,10 +1,10 @@
 {
-    "name": "jupiterapi",
-    "description": "Jupiter API for jobjupiter.com",
-    "version": "0.1.0",
-    "private": true,
-    "dependencies": {
-        "express": "3.x",
+	"name": "jupiterapi",
+	"description": "Jupiter API for jobjupiter.com",
+	"version": "0.1.0",
+	"private": true,
+	"dependencies": {
+		"express": "3.x",
 		"mongodb": "1.3.x",
 		"braintree": "1.12.x",
 		"cron": "1.0.x",
@@ -13,10 +13,17 @@
 		"haversine": "0.0.x",
 		"MD5": "1.2.x",
 		"nodemailer": "0.6.x",
-		"textract": "0.8.x"
-    },
-	"devDependencies": {
-		"vows": "0.5.x"
+		"textract": "0.8.x",
+		"xmlbuilder": "~2.2.1"
 	},
-	"engine": "node >= 0.10"
+	"devDependencies": {
+		"vows": "0.5.x",
+		"moment": "~2.5.1",
+		"mocha": "~1.18.2",
+		"chai": "~1.9.1"
+	},
+	"engine": "node >= 0.10",
+	"scripts": {
+		"test": "mocha test"
+	}
 }
