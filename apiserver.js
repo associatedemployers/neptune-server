@@ -1,7 +1,5 @@
 /*******************************
 
-V0.1.1 (dev)
-
 Main api.jobjupiter.com apiserver.js
 (API SERVER) by AE Development
 Node.js, Express.js, MongoDB
@@ -37,7 +35,9 @@ var express = require('express'),
 	feedcontroller = require('./util/feedcontroller'),
 
 	mailtemplates = require('./config/mail.templates'),
-	token = require('./config/tokens');
+	token = require('./config/tokens'),
+	
+	auth = require('./config/authorization-router');
 	/* END Route Vars */
 
 api.configure(function () {
@@ -56,79 +56,6 @@ function transformreq (req, res, next) {
 	req.body = req.query;
 	next();
 }
-
-//authorization controller
-var auth = {
-	get: {
-		admin: function (req, res, next) {
-			if (req.query.token !== token.admin) {
-				res.send('Missing auth token from request.');
-				console.log("SECURITY LOG: User attempted to connect without proper token. --ADMIN");
-			} else {
-				next();
-			}
-		},
-		user: function (req, res, next) {
-			if (req.query.token !== token.user) {
-				res.send('Missing auth token from request.');
-				console.log("SECURITY LOG: User attempted to connect without proper token. --USER");
-			} else {
-				next();
-			}
-		},
-		guest: function (req, res, next) {
-			if (req.query.token !== token.guest) {
-				res.send('Missing auth token from request.');
-				console.log("SECURITY LOG: User attempted to connect without proper token. --GUEST");
-			} else {
-				next();
-			}
-		},
-		employer: function (req, res, next) {
-			if (req.query.token !== token.employer) {
-				res.send('Missing auth token from request.');
-				console.log("SECURITY LOG: User attempted to connect without proper token. --EMPLOYER");
-			} else {
-				next();
-			}
-		}
-	},
-	post: {
-		admin: function (req, res, next) {
-			if (req.body.token !== token.admin) {
-				res.send('Missing auth token from request.');
-				console.log("SECURITY LOG: User attempted to connect without proper token. --ADMIN");
-			} else {
-				next();
-			}
-		},
-		user: function (req, res, next) {
-			if (req.body.token !== token.user) {
-				res.send('Missing auth token from request.');
-				console.log("SECURITY LOG: User attempted to connect without proper token. --USER");
-			} else {
-				next();
-			}
-		},
-		guest: function (req, res, next) {
-			if (req.body.token !== token.guest) {
-				res.send('Missing auth token from request.');
-				console.log("SECURITY LOG: User attempted to connect without proper token. --GUEST");
-			} else {
-				next();
-			}
-		},
-		employer: function (req, res, next) {
-			if (req.body.token !== token.employer) {
-				res.send('Missing auth token from request.');
-				console.log("SECURITY LOG: User attempted to connect without proper token. --EMPLOYER");
-			} else {
-				next();
-			}
-		}
-	}
-}
-//end authorization controller object literal
 
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
 Route Controllers
@@ -270,15 +197,15 @@ api.get('/indeed-xml/jobs.xml', feedbuilder.fetchAllJobs, feedbuilder.mapIndeedF
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
 END Route Controllers
 XXXXXXXXXXXXXXXXXXXXXXXXXX */
-
-https.createServer({
-	key: privateKey,
-	cert: certificate,
-	ca: chain
-}, api).listen(3000, function () {
-	console.log('Jupiter Secure API Listening on Port 3000...');
-});
-
-http.createServer(api).listen(3001, function () {
-	console.log('Jupiter API Listening on Port 3000...');
-});
+exports.setup = function () {
+	https.createServer({
+		key: privateKey,
+		cert: certificate,
+		ca: chain
+	}, api).listen(3000, function () {
+		console.log('Jupiter Secure API Listening on Port 3000...');
+	});
+	http.createServer(api).listen(3001, function () {
+		console.log('Jupiter API Listening on Port 3000...');
+	});
+}
