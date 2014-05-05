@@ -225,7 +225,7 @@ var feedsController = {
 							about: ""
 						},
 						title: result.jobtitle,
-						picture: 'http://www.gravatar.com/avatar/' + md5(result.jobkey) + '.jpg?s=64&d=identicon',
+						picture: 'https://www.gravatar.com/avatar/' + md5(result.jobkey) + '.jpg?s=64&d=identicon',
 					},
 					name: {
 						company: result.company
