@@ -335,7 +335,7 @@ exports.updateContent = function (req, res, next) {
 		return;
 	}
 	db.collection('content', function(err, collection) {
-		collection.findAndModify({ 'page': update.page }, [], { $set: { 'content': update.content } }, { remove: false, new: true }, function(err, result) {
+		collection.findAndModify({ 'page': update.page }, [], { $set: { 'content': update.content } }, { upsert: true, remove: false, new: true }, function(err, result) {
 			if(err) {
 				console.log(err);
 				res.json({
@@ -801,3 +801,21 @@ exports.removeFeed = function (req, res, next) {
 	});
 }
 //end feed operations
+
+exports.getMaintenanceStatus = function (req, res, next) {
+	db.collection('content', function(err, collection) {
+		collection.findOne({'page': 'maintenance'}, function(err, result) {
+			if(err) {
+				console.error(err);
+				res.status(500).json({
+					'status': 'error',
+					'error': err
+				});
+			} else {
+				res.json({
+					status: (!result.content) ? "false" : result.content.status
+				});
+			}
+		});
+	});
+}

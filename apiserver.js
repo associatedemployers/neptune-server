@@ -11,27 +11,34 @@ Creation Date: 2014/01/03
 *******************************/
 
 var express = require('express'),
-nodemailer = require('nodemailer'),
+	nodemailer = require('nodemailer'),
+	fs = require("fs"),
+	http = require('http'),
+	https = require('https'),
 
-/* Route Vars */
-api = express(),
-users = require('./routes/users'),
-employers = require('./routes/employers'),
-jobs = require('./routes/jobs'),
-login = require('./routes/login'),
-searchdb = require('./routes/searchdb'),
-indexer = require('./routes/indexer'),
-transaction = require('./routes/transaction'),
-administration = require('./routes/administration'),
-cronjobs = require('./util/cronjobs'),
-notifications = require('./util/notifications'),
-analytics = require('./util/analytics'),
-feedbuilder = require('./util/feedbuilder'),
-feedcontroller = require('./util/feedcontroller'),
+	privateKey = fs.readFileSync('cert/key.pem').toString(),
+	certificate = fs.readFileSync('cert/certificate.pem').toString(),
+	chain = fs.readFileSync('cert/ca.pem').toString(),
+	
+	/* Route Vars */
+	api = express(),
+	users = require('./routes/users'),
+	employers = require('./routes/employers'),
+	jobs = require('./routes/jobs'),
+	login = require('./routes/login'),
+	searchdb = require('./routes/searchdb'),
+	indexer = require('./routes/indexer'),
+	transaction = require('./routes/transaction'),
+	administration = require('./routes/administration'),
+	cronjobs = require('./util/cronjobs'),
+	notifications = require('./util/notifications'),
+	analytics = require('./util/analytics'),
+	feedbuilder = require('./util/feedbuilder'),
+	feedcontroller = require('./util/feedcontroller'),
 
-mailtemplates = require('./config/mail.templates'),
-token = require('./config/tokens');
-/* END Route Vars */
+	mailtemplates = require('./config/mail.templates'),
+	token = require('./config/tokens');
+	/* END Route Vars */
 
 api.configure(function () {
     api.use(express.logger('dev'));
@@ -128,6 +135,7 @@ Route Controllers
 XXXXXXXXXXXXXXXXXXXXXXXXXX */
 
 api.get('/fetch-page-content', auth.get.guest, users.fetchPageContent);//simple fetch content
+api.get('/maintenance-mode', auth.get.guest, administration.getMaintenanceStatus);
 
 api.get('/send-message', auth.get.guest, notifications.fetchAdminEmail, notifications.sendContactMessage);
 
@@ -238,31 +246,39 @@ api.get('/admin/feeds/remove', auth.get.admin, administration.removeFeed);
 api.get('/admin/activate', auth.get.guest, administration.activateAccount);
 
 //Load Test Verfication
-api.get('/loaderio-0e9d2a52cecd9630bef3ccc93d4f120a/', function(req, res){
+api.get('/loaderio-0e9d2a52cecd9630bef3ccc93d4f120a/', function (req, res) {
 	var body = 'loaderio-0e9d2a52cecd9630bef3ccc93d4f120a';
 	res.setHeader('Content-Type', 'text/plain');
 	res.setHeader('Content-Length', Buffer.byteLength(body));
 	res.end(body);
 });
 
-api.get('/simply-hired-xml/jobs.xml', feedbuilder.fetchAllJobs, feedbuilder.mapSimplyHiredFeed, feedbuilder.buildFeed, function(req, res){
+api.get('/simply-hired-xml/jobs.xml', feedbuilder.fetchAllJobs, feedbuilder.mapSimplyHiredFeed, feedbuilder.buildFeed, function (req, res) {
 	var body = req.xml;
 	res.setHeader('Content-Type', 'text/xml;charset=utf-8;');
 	res.setHeader('Content-Length', Buffer.byteLength(body));
 	res.end(body);
 });
 
-api.get('/indeed-xml/jobs.xml', feedbuilder.fetchAllJobs, feedbuilder.mapIndeedFeed, feedbuilder.buildFeed, function(req, res){
+api.get('/indeed-xml/jobs.xml', feedbuilder.fetchAllJobs, feedbuilder.mapIndeedFeed, feedbuilder.buildFeed, function (req, res) {
 	var body = req.xml;
 	res.setHeader('Content-Type', 'text/xml;charset=utf-8;');
 	res.setHeader('Content-Length', Buffer.byteLength(body));
 	res.end(body);
 });
-
 
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
 END Route Controllers
 XXXXXXXXXXXXXXXXXXXXXXXXXX */
 
-api.listen(3000);
-console.log('Jobs API Listening on Port 3000...');
+https.createServer({
+	key: privateKey,
+	cert: certificate,
+	ca: chain
+}, api).listen(3000, function () {
+	console.log('Jupiter Secure API Listening on Port 3000...');
+});
+
+http.createServer(api).listen(3001, function () {
+	console.log('Jupiter API Listening on Port 3000...');
+});
