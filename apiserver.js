@@ -35,12 +35,12 @@ var express = require('express'),
 	feedcontroller = require('./util/feedcontroller'),
 
 	mailtemplates = require('./config/mail.templates'),
-	token = require('./config/tokens'),
 	
 	auth = require('./config/authorization-router');
 	/* END Route Vars */
 
 api.configure(function () {
+	api.use(express.compress());
     api.use(express.logger('dev'));
 	api.use(express.json());
 	api.use(express.urlencoded());
@@ -197,7 +197,7 @@ api.get('/indeed-xml/jobs.xml', feedbuilder.fetchAllJobs, feedbuilder.mapIndeedF
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
 END Route Controllers
 XXXXXXXXXXXXXXXXXXXXXXXXXX */
-exports.setup = function () {
+exports.start = function () {
 	https.createServer({
 		key: privateKey,
 		cert: certificate,

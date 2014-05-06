@@ -1,3 +1,5 @@
+var token = require('./tokens');
+
 module.exports = {
 	get: {
 		admin: function (req, res, next) {

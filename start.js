@@ -1,3 +1,3 @@
-var server = require('apiserver.js');
+var server = require('./apiserver');
 
 server.start();
