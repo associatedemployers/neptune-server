@@ -209,3 +209,5 @@ exports.setup = function () {
 		console.log('Jupiter API Listening on Port 3000...');
 	});
 }
+
+exports.app = api;
