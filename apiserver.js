@@ -61,8 +61,8 @@ function transformreq (req, res, next) {
 Route Controllers
 XXXXXXXXXXXXXXXXXXXXXXXXXX */
 
-api.get('/fetch-page-content', auth.get.guest, users.fetchPageContent);//simple fetch content
-api.get('/maintenance-mode', auth.get.guest, administration.getMaintenanceStatus);
+api.get('/fetch-page-content', auth.get.guest, users.fetchPageContent);// Test Covered
+api.get('/maintenance-mode', auth.get.guest, administration.getMaintenanceStatus);// Test Covered
 
 api.get('/send-message', auth.get.guest, notifications.fetchAdminEmail, notifications.sendContactMessage);
 
@@ -149,7 +149,7 @@ api.get('/admin/analytics/quick', auth.get.admin, analytics.countResumes, analyt
 api.get('/admin/analytics/orders', auth.get.admin, analytics.fetchOrderData);
 api.get('/admin/analytics/full', auth.get.admin, analytics.countResumes, analytics.countOrdersToday, analytics.countOrders, analytics.countEmployers, analytics.countActiveEmployers, analytics.countUsers, analytics.countListings, analytics.countApplications, analytics.sendFull);
 api.get('/admin/analytics/advanced', auth.get.admin, analytics.getDS, analytics.getCSemployers, analytics.getCSemployerusers, analytics.getCSjobs, analytics.getCSresumes, analytics.getCSusers, analytics.getCSorders, analytics.sendAdvanced);
-api.get('/admin/fetch-appdata', auth.get.admin, administration.fetchAppdata);
+api.get('/admin/fetch-appdata', auth.get.admin, administration.fetchAppdata);// Test Covered
 api.get('/admin/fetch-announcements', auth.get.admin, administration.fetchAnnouncements);
 api.get('/admin/create-announcement', auth.get.admin, administration.createAnnouncement);
 api.get('/admin/remove-announcement', auth.get.admin, administration.removeAnnouncement);
@@ -162,7 +162,7 @@ api.get('/admin/fetch-employers', auth.get.admin, administration.fetchEmployers,
 api.get('/admin/delete-employer', auth.get.admin, administration.deleteEmployerListing, administration.deleteEmployerAccount, notifications.deletedEmployer);
 api.get('/admin/fetch-users', auth.get.admin, administration.fetchUsers);
 api.get('/admin/delete-user', auth.get.admin, administration.deleteUserAccount, administration.deleteUserResume);
-api.get('/admin/update-content', auth.get.admin, administration.updateContent);
+api.get('/admin/update-content', auth.get.admin, administration.updateContent);// Test Covered
 api.get('/admin/add-image-to-rotation', auth.get.admin, administration.addImageToRotation);
 api.get('/admin/remove-image-from-rotation', auth.get.admin, administration.removeImageFromRotation);
 
@@ -197,16 +197,19 @@ api.get('/indeed-xml/jobs.xml', feedbuilder.fetchAllJobs, feedbuilder.mapIndeedF
 /* XXXXXXXXXXXXXXXXXXXXXXXXXX
 END Route Controllers
 XXXXXXXXXXXXXXXXXXXXXXXXXX */
-exports.start = function () {
-	https.createServer({
+exports.starthttps = function (port) {
+	return https.createServer({
 		key: privateKey,
 		cert: certificate,
 		ca: chain
-	}, api).listen(3000, function () {
-		console.log('Jupiter Secure API Listening on Port 3000...');
+	}, api).listen(port, function () {
+		console.log('Jupiter Secure API Listening on Port', port, '...');
 	});
-	http.createServer(api).listen(3001, function () {
-		console.log('Jupiter API Listening on Port 3000...');
+}
+
+exports.starthttp = function (port) {
+	return http.createServer(api).listen(port, function () {
+		console.log('Jupiter API Listening on Port', port, '...');
 	});
 }
 

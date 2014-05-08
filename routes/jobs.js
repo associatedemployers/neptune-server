@@ -129,14 +129,14 @@ exports.fetchAll = function(req, res) {
 				var loc = req.query.location;
 					results = [],
 					manifest = {
-						'latitude': loc.lat,
-						'longitude': loc.lng
+						latitude: loc.lat,
+						longitude: loc.lng
 					};
 				items.forEach(function(item) { //iterate over the items array
 					if(!item.location.geo) { return; }
 					var item_geo = {
-						'latitude': item.location.geo.lat,
-						'longitude': item.location.geo.lng
+						latitude: item.location.geo.lat,
+						longitude: item.location.geo.lng
 					}
 					if(haversine(manifest, item_geo, {'unit': 'mi'}) < loc.radius) { //distance less than search radius
 						results.push(item);	//push the item into the results array

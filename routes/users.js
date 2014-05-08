@@ -132,8 +132,8 @@ exports.newApplication = function(req, res, next) {
 		'job_title': req.job_data.display.title,
 		'company': req.job_data.name.company
 	};
-	db.collection('users', function(err, collection) {
-		collection.findAndModify({'_id': new BSON.ObjectID(user_data._id)}, [], { $addToSet: { 'applications': application } }, function(err, result) {
+	db.collection('users', function (err, collection) {
+		collection.findAndModify({'_id': new BSON.ObjectID(user_data._id)}, [], { $addToSet: { 'applications': application } }, function (err, result) {
 			if(err) {
 				res.json({
 					'status': 'Mongo Error: ' + err
@@ -151,8 +151,8 @@ exports.newApplication = function(req, res, next) {
 exports.fetchEmail = function(req, res, next) {
 	var id = req.query.user_data._id;
 	
-	db.collection('users', function(err, collection) {
-		collection.find({'_id':new BSON.ObjectID(id)}).toArray(function(err, results) {
+	db.collection('users', function (err, collection) {
+		collection.find({'_id':new BSON.ObjectID(id)}).toArray(function (err, results) {
 			if(err) {
 				console.log(err);
 			} else {
@@ -167,12 +167,12 @@ exports.fetchPageContent = function (req, res, next) {
 	var page = req.query.page;
 	if(!page) {
 		res.status(404).json({
-			'status': 'error',
-			'error': 'no page'
+			status: 'error',
+			error: 'no page'
 		});
 	}
 	db.collection('content', function(err, collection) {
-		collection.findOne({'page': page}, function(err, result) {
+		collection.findOne({ 'page': page }, function (err, result) {
 			if(err) {
 				console.error(err);
 				res.status(500).json({
@@ -180,7 +180,14 @@ exports.fetchPageContent = function (req, res, next) {
 					'error': err
 				});
 			} else {
-				res.json(result);
+				if(!result || result == null) {
+					res.status(404).json({
+						status: 'error',
+						error: 'no page'
+					});
+				} else {
+					res.json(result);
+				}
 			}
 		});
 	});
@@ -196,8 +203,8 @@ exports.saveJob = function (req, res, next) {
 		});
 		return
 	}
-	db.collection('users', function(err, collection) {
-		collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $addToSet: { 'saved_jobs': job } }, {remove:false, new:true}, function(err, result) {
+	db.collection('users', function (err, collection) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $addToSet: { 'saved_jobs': job } }, {remove:false, new:true}, function (err, result) {
 			if(err) {
 				console.log(err);
 				res.json({

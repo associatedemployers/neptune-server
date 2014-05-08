@@ -4,7 +4,7 @@ module.exports = {
 	get: {
 		admin: function (req, res, next) {
 			if (req.query.token !== token.admin) {
-				res.send('Missing auth token from request.');
+				res.status(401).send('Missing auth token from request.');
 				console.log("SECURITY LOG: User attempted to connect without proper token. --ADMIN");
 			} else {
 				next();
@@ -12,7 +12,7 @@ module.exports = {
 		},
 		user: function (req, res, next) {
 			if (req.query.token !== token.user) {
-				res.send('Missing auth token from request.');
+				res.status(401).send('Missing auth token from request.');
 				console.log("SECURITY LOG: User attempted to connect without proper token. --USER");
 			} else {
 				next();
@@ -20,7 +20,7 @@ module.exports = {
 		},
 		guest: function (req, res, next) {
 			if (req.query.token !== token.guest) {
-				res.send('Missing auth token from request.');
+				res.status(401).send('Missing auth token from request.');
 				console.log("SECURITY LOG: User attempted to connect without proper token. --GUEST");
 			} else {
 				next();
@@ -28,7 +28,7 @@ module.exports = {
 		},
 		employer: function (req, res, next) {
 			if (req.query.token !== token.employer) {
-				res.send('Missing auth token from request.');
+				res.status(401).send('Missing auth token from request.');
 				console.log("SECURITY LOG: User attempted to connect without proper token. --EMPLOYER");
 			} else {
 				next();
@@ -38,7 +38,7 @@ module.exports = {
 	post: {
 		admin: function (req, res, next) {
 			if (req.body.token !== token.admin) {
-				res.send('Missing auth token from request.');
+				res.status(401).send('Missing auth token from request.');
 				console.log("SECURITY LOG: User attempted to connect without proper token. --ADMIN");
 			} else {
 				next();
@@ -46,7 +46,7 @@ module.exports = {
 		},
 		user: function (req, res, next) {
 			if (req.body.token !== token.user) {
-				res.send('Missing auth token from request.');
+				res.status(401).send('Missing auth token from request.');
 				console.log("SECURITY LOG: User attempted to connect without proper token. --USER");
 			} else {
 				next();
@@ -54,7 +54,7 @@ module.exports = {
 		},
 		guest: function (req, res, next) {
 			if (req.body.token !== token.guest) {
-				res.send('Missing auth token from request.');
+				res.status(401).send('Missing auth token from request.');
 				console.log("SECURITY LOG: User attempted to connect without proper token. --GUEST");
 			} else {
 				next();
@@ -62,7 +62,7 @@ module.exports = {
 		},
 		employer: function (req, res, next) {
 			if (req.body.token !== token.employer) {
-				res.send('Missing auth token from request.');
+				res.status(401).send('Missing auth token from request.');
 				console.log("SECURITY LOG: User attempted to connect without proper token. --EMPLOYER");
 			} else {
 				next();
