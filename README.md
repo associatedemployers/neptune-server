@@ -1,3 +1,4 @@
 ![Jupiter API](http://api.jobjupiter.com/jupiterapi.jpg)
-==============
-[![Build Status](https://travis-ci.org/associatedemployers/jupiter-api.png?branch=master)](https://travis-ci.org/associatedemployers/jupiter-api)
+===
+## A beautifully fast Node API/Webserver for the Jupiter network
+#### Powering a rocket fast job search engine...
