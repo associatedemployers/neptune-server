@@ -43,7 +43,7 @@ describe('Content Routes', function () {
 					if(err) throw err;
 					var page = res.body;
 					res.ok.should.equal(true);
-					page.should.be.a('object');
+					page.should.be.an('object');
 					page.should.have.property('content');
 					page.content.should.have.property('members').and.have.property('featured').and.have.property('listing');
 					page.content.should.have.property('non_members').and.have.property('featured').and.have.property('listing');
@@ -74,7 +74,7 @@ describe('Content Routes', function () {
 function assertPage (res, done) {
 	var page = res.body;
 	res.ok.should.equal(true);
-	page.should.be.a('object');
+	page.should.be.an('object');
 	page.should.have.property('content');
 	page.content.should.have.property('text');
 	page.content.should.have.property('time_stamp');

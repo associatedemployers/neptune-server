@@ -161,7 +161,7 @@ exports.fetchByID = function(req, res) {
 		return;
 	}
 	db.collection('jobs', function (err, collection) {
-		collection.findOne({'_id':new BSON.ObjectID(id)}, { fields: { 'applicants': 0 } }, function (err, item) {
+		collection.findOne({ '_id': new BSON.ObjectID(id), 'active': true }, { fields: { 'applicants': 0 } }, function (err, item) {
 			if(err) {
 				if(req.query.callback !== null) {
 					res.status(404).jsonp("Not Found");

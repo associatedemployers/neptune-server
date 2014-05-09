@@ -19,7 +19,7 @@ describe('Job routes', function () {
 						if(err) throw err;
 						res.ok.should.equal(true);
 						var results = res.body;
-						results.should.be.a('array');
+						results.should.be.an('array');
 						results.should.have.length.below(26);
 						if(results.length < 1) {
 							console.log('        Silently failing these tests! No jobs to use.'.red);
@@ -37,7 +37,7 @@ describe('Job routes', function () {
 						if(err) throw err;
 						res.ok.should.equal(true);
 						var results = res.body;
-						results.should.be.a('array');
+						results.should.be.an('array');
 						results.should.have.length.below(101);
 						done();
 					});
@@ -51,7 +51,7 @@ describe('Job routes', function () {
 						if(err) throw err;
 						res.ok.should.equal(true);
 						var results_setone = res.body;
-						results_setone.should.be.a('array');
+						results_setone.should.be.an('array');
 						results_setone.should.have.length.below(101);
 						request// get the second set of results
 							.get(jr)
@@ -60,7 +60,7 @@ describe('Job routes', function () {
 								if(err) throw err;
 								res.ok.should.equal(true);
 								var results_settwo = res.body;
-								results_settwo.should.be.a('array');
+								results_settwo.should.be.an('array');
 								results_settwo.should.have.length.below(101);
 								var result_list = [], count = 0;
 								results_setone.forEach(function (item) {
@@ -117,7 +117,7 @@ describe('Job routes', function () {
 							.end(function (err, res) {
 								if(err) throw err;
 								res.ok.should.equal(true);
-								res.body.should.be.a('object')
+								res.body.should.be.an('object');
 								res.body.should.have.property('_id').and.equal(id);
 								done();
 							});
@@ -134,6 +134,58 @@ describe('Job routes', function () {
 						var job = res.body;
 						job.should.not.have.property('applicants');
 						job.should.not.have.property('screening');
+						done();
+					});
+			});
+			it('should return a 404 with an improper ID', function (done) {
+				if(checkState()) return done();
+				request
+					.get(u + '/jobs/' + 'notabsonid')
+					.query({ token: tokens.guest })
+					.end(function (err, res) {
+						if(err) throw err;
+						res.status.should.equal(404);
+						done();
+					});
+			});
+			it('should return a 404 with a proper ID, but no job found', function (done) {
+				if(checkState()) return done();
+				request
+					.get(u + '/jobs/' + '123456789123456789123456')
+					.query({ token: tokens.guest })
+					.end(function (err, res) {
+						if(err) throw err;
+						res.status.should.equal(404);
+						done();
+					});
+			});
+		});
+		describe('for featured jobs', function () {
+			it('should return a proper amount of random featured', function (done) {
+				if(checkState()) return done();
+				request
+					.get(u + '/random-featured/jobs/5')
+					.query({ token: tokens.guest })
+					.end(function (err, res) {
+						if(err) throw err;
+						res.ok.should.equal(true);
+						res.body.should.be.an('array');
+						res.body.should.have.length.below(6);
+						done();
+					});
+			});
+			it('should return a proper, optimized list of featured jobs', function (done) {
+				if(checkState()) return done();
+				request
+					.get(u + '/featured/jobs')
+					.query({ token: tokens.guest })
+					.end(function (err, res) {
+						if(err) throw err;
+						res.ok.should.equal(true);
+						res.body.should.be.an('array');
+						var job = res.body[0];
+						job.should.not.have.property('applicants');
+						job.should.have.property('display').and.have.property('description').and.not.have.property('long');
 						done();
 					});
 			});

@@ -67,17 +67,16 @@ api.get('/maintenance-mode', auth.get.guest, administration.getMaintenanceStatus
 api.get('/send-message', auth.get.guest, notifications.fetchAdminEmail, notifications.sendContactMessage);
 
 //jobs
-api.get('/jobs', auth.get.guest, jobs.fetchAll);
-api.get('/jobs/:id', auth.get.guest, jobs.fetchByID);
+api.get('/jobs', auth.get.guest, jobs.fetchAll);// Test Covered
+api.get('/jobs/:id', auth.get.guest, jobs.fetchByID);// Test Covered
 api.get('/job/category-count', auth.get.guest, jobs.categoryCount);
 api.get('/job/expired/:id', auth.get.employer, jobs.fetchExpiredListing);
 api.get('/job/save/:id', auth.get.employer, jobs.saveListing);
 api.get('/job/apply/:id', auth.get.guest, jobs.newApplication, users.newApplication, users.fetchEmail, jobs.fetchEmail, jobs.fetchInfo, notifications.newApplication, analytics.logApplication);
 api.post('/jobs', auth.post.employer, jobs.geocode, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile);
 api.get('/ie/job/add', auth.get.employer, transformreq, jobs.geocode, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile);
-/*api.delete('/jobs', auth.employer, jobs.deleteJob);*/ //Don't know if we will use this one?...
-api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured);
-api.get('/random-featured/jobs/:count', auth.get.guest, jobs.fetchRandomFeatured);
+api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured);// Test Covered
+api.get('/random-featured/jobs/:count', auth.get.guest, jobs.fetchRandomFeatured);// Test Covered
 api.get('/search/jobs/location/:state', auth.get.guest, jobs.fetchByState, jobs.radiusSearch);
 
 //users

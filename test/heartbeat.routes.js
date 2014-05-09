@@ -14,7 +14,7 @@ describe('Heartbeat Routes', function () {
 				.end(function (err, res) {
 					if(err) throw err;
 					res.status.should.equal(200);
-					res.body.should.be.a('object');
+					res.body.should.be.an('object');
 					done();
 				});
 		});
@@ -27,7 +27,7 @@ describe('Heartbeat Routes', function () {
 				.end(function (err, res) {
 					if(err) throw err;
 					res.status.should.equal(200);
-					res.body.should.be.a('object');
+					res.body.should.be.an('object');
 					done();
 				});
 		});
