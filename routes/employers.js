@@ -677,10 +677,7 @@ exports.saveLabels = function(req, res, next) {
 
 exports.unlockResumes = function (req, res, next) {
 	var order = req.query.order;
-	if(order.type == "featured_account") {
-		next();
-		return;
-	}
+	if(order.type !== "resumes") return next();
 	db.collection('employerusers', function(err, collection) {
 		collection.findAndModify({ '_id': new BSON.ObjectID(order.employer_id) }, [], { $set: { 'resume_search': order.expiration } }, { remove: false, new: true }, function(err, result) {
 			if(err) {
@@ -701,6 +698,7 @@ exports.unlockResumes = function (req, res, next) {
 
 exports.featureAccount = function (req, res, next) {
 	var order = req.query.order;
+	if(order.type !== "featured_account") return next();
 	db.collection('employers', function(err, collection) {
 		collection.findAndModify({ 'employer_id': new BSON.ObjectID(order.employer_id) }, [], { $set: { 'featured': true, 'featured_expiration': order.featured_expiration } }, { remove: false, new: true }, function(err, result) {
 			if(err) {
@@ -718,6 +716,7 @@ exports.featureAccount = function (req, res, next) {
 
 exports.featureAccountListing = function (req, res, next) {
 	var order = req.query.order;
+	if(order.type !== "featured_account") return next();
 	db.collection('employerusers', function(err, collection) {
 		collection.findAndModify({ '_id': new BSON.ObjectID(order.employer_id) }, [], { $set: { 'featured': true, 'featured_expiration': order.featured_expiration } }, { remove: false, new: true }, function(err, result) {
 			if(err) {
@@ -735,6 +734,25 @@ exports.featureAccountListing = function (req, res, next) {
 	});
 }
 
+exports.addScreeningServiceToListing = function (req, res, next) {
+	var order = req.query.order;
+	if(order.type !== "screening_service") return next();
+	db.collection('jobs', function(err, collection) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(order.listing) }, [], { $set: { 'screening_enabled': true } }, { remove: false, new: true }, function(err, result) {
+			if(err) {
+				console.log(err);
+				res.json({
+					status: 'in error',
+					error: err
+				});
+			} else {
+				res.json({
+					status: 'processed'
+				});
+			}
+		});
+	});
+}
 
 exports.checkExpiration = function (req, res, next) {
 	var id = req.query.employer_id;

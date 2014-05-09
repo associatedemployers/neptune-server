@@ -107,7 +107,7 @@ api.get('/ie/employers', auth.get.guest, transformreq, employers.addEmployer, em
 api.get('/check-existing-email', auth.get.guest, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.checkComplete);
 api.get('/check-existing-employer-company', auth.get.guest, employers.checkExistingCompany, employers.checkComplete);
 api.get('/validate-coupon', auth.get.employer, transaction.validateCoupon);
-api.get('/process-order', auth.get.employer, transaction.process, transaction.storeOrder, transaction.oneTime, transaction.storeCard, employers.unlockResumes, employers.featureAccount, employers.featureAccountListing);
+api.get('/process-order', auth.get.employer, transaction.process, transaction.storeOrder, transaction.oneTime, transaction.storeCard, employers.unlockResumes, employers.featureAccount, employers.featureAccountListing, employers.addScreeningServiceToListing);
 api.get('/featured/employers', auth.get.guest, employers.fetchFeatured);
 api.get('/random-featured/employers/:count', auth.get.guest, employers.fetchRandomFeatured);
 api.get('/employer/verify-account', auth.get.guest, employers.verifyAccount, employers.writeAccount, employers.writeListing);

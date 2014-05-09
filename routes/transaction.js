@@ -105,6 +105,8 @@ exports.process = function(req, res, next) {
 					template = mailtemplate.resumeAccess(order.billing.name, result.transaction.id, order.total);
 				} else if(order.type == "featured_account") {
 					template = mailtemplate.featuredAccount(order.billing.name, result.transaction.id, order.total);
+				} else if(order.type == "screening_service") {
+					template = mailtemplate.screeningService(order.billing.name, result.transaction.id, order.total);
 				}
 				var transport = nodemailer.createTransport("sendmail");
 				transport.sendMail({
@@ -135,6 +137,8 @@ exports.process = function(req, res, next) {
 			template = mailtemplate.resumeAccess(order.billing.name, "Free", order.total);
 		} else if(order.type == "featured_account") {
 			template = mailtemplate.featuredAccount(order.billing.name, "Free", order.total);
+		} else if(order.type == "screening_service") {
+			template = mailtemplate.screeningService(order.billing.name, "Free", order.total);
 		}
 		var transport = nodemailer.createTransport("sendmail");
 		transport.sendMail({
@@ -177,9 +181,7 @@ exports.storeOrder = function(req, res, next) {
 exports.oneTime = function(req, res, next) {
 	var couponCode = req.query.order.coupon,
 		emp_id = req.query.order.employer_id;
-	console.log('one time');
 	if(!couponCode || !req.query.order.coupon_onetime) return next();
-	console.log('modifying');
 	db.collection('content', function(err, collection) {
 		collection.findAndModify({'page': 'coupons',  'content': { $elemMatch: { 'code': couponCode } } }, [], { $push: { 'content.$.used': emp_id } }, { remove: false, new: true }, function(err, result) {
 			if(err) {
@@ -189,7 +191,6 @@ exports.oneTime = function(req, res, next) {
 					'error': err
 				});
 			} else {
-				console.log(JSON.stringify(result));
 				next();
 			}
 		});
@@ -201,7 +202,7 @@ exports.storeCard = function(req, res, next) {
 	if(req.savingCard && parseFloat(order.total) > 0) {
 		db.collection('employerusers', function(err, collection) {	
 			collection.update( { '_id': new BSON.ObjectID(order.employer_id) }, { $addToSet: { 'stored_cards': { 'token': req.transactionResult.transaction.creditCard.token, 'masked_number': req.transactionResult.transaction.creditCard.maskedNumber } } }, function(err, result) {
-				if(order.type == "resumes") {
+				if(order.type !== "listing") {
 					next();
 				} else {
 					res.send({
@@ -211,7 +212,7 @@ exports.storeCard = function(req, res, next) {
 			});
 		});
 	} else {
-		if(order.type == "resumes" || order.type == "featured_account") {
+		if(order.type !== "listing") {
 			next();
 		} else {
 			res.send({
