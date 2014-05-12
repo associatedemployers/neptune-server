@@ -419,6 +419,8 @@ exports.fetchListings = function (req, res, next) {
 					filters[key] = {
 						$exists: false
 					}
+				} else if(key == '_id') {
+					filters[key] = new BSON.ObjectID(qFilters[key]);
 				} else {
 					filters[key] = qFilters[key];// overwrite it
 				}
