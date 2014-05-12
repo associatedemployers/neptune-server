@@ -363,16 +363,33 @@ exports.fetchOrders = function (req, res, next) {
 		res.json([]);
 		return;
 	}
-	db.collection('orders', function(err, collection) {
-		collection.find().sort({ 'time_stamp': -1 }).toArray(function(err, results) {
-			if(err) {
-				res.json({
-					'status': 'in error',
-					'error': 'Mongo err: ' + err
-				});
-			} else {
-				res.json(results);
+	var filters = {
+		active: true
+	},
+		qFilters = req.query.filters,
+		limit = parseFloat(req.query.limit) || 100,
+		page = parseFloat(req.query.page) || 1,
+		sort = req.query.sort;
+	for (var k in sort) {
+		sort[k] = parseFloat(sort[k]);
+	}
+	if(qFilters) {
+		for (var key in qFilters) {
+			if(!filters.hasOwnProperty(key)) {// if we are not on a default
+				if(qFilters[key] == 'NOT_SET') {
+					filters[key] = {
+						$exists: false
+					}
+				} else {
+					filters[key] = qFilters[key];// overwrite it
+				}
 			}
+		}
+	}
+	db.collection('orders', function (err, collection) {
+		collection.find(filters).sort(sort).skip((page - 1) * limit).limit(limit).toArray(function (err, items) {
+			if(err) console.error(err);
+			res.json(items);
 		});
 	});
 }
@@ -656,7 +673,7 @@ exports.fetchUsers = function (req, res, next) {
 		res.json([]);
 		return;
 	}
-		var filters = {
+	var filters = {
 		active: true
 	},
 		qFilters = req.query.filters,
