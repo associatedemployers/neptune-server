@@ -363,9 +363,7 @@ exports.fetchOrders = function (req, res, next) {
 		res.json([]);
 		return;
 	}
-	var filters = {
-		active: true
-	},
+	var filters = {},
 		qFilters = req.query.filters,
 		limit = parseFloat(req.query.limit) || 100,
 		page = parseFloat(req.query.page) || 1,
@@ -406,9 +404,7 @@ exports.fetchListings = function (req, res, next) {
 		res.json([]);
 		return;
 	}
-	var filters = {
-		active: true
-	},
+	var filters = {},
 		qFilters = req.query.filters,
 		limit = parseFloat(req.query.limit) || 100,
 		page = parseFloat(req.query.page) || 1,
@@ -537,9 +533,7 @@ exports.fetchEmployers = function (req, res, next) {
 		res.json([]);
 		return;
 	}
-		var filters = {
-		active: true
-	},
+	var filters = {},
 		qFilters = req.query.filters,
 		limit = parseFloat(req.query.limit) || 100,
 		page = parseFloat(req.query.page) || 1,
@@ -673,9 +667,7 @@ exports.fetchUsers = function (req, res, next) {
 		res.json([]);
 		return;
 	}
-	var filters = {
-		active: true
-	},
+	var filters = {},
 		qFilters = req.query.filters,
 		limit = parseFloat(req.query.limit) || 100,
 		page = parseFloat(req.query.page) || 1,
