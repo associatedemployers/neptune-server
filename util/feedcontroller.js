@@ -231,7 +231,7 @@ var feedsController = {
 						company: result.company
 					},
 					alternate_url: result.url,
-					featured: false,
+					featured: "false",
 					notification_email: "FromFeed@jobjupiter.com",
 					time_stamp: (date) ? moment(date, "ddd, DD MMM YYYY HH:mm:ss").format("YYYY/MM/DD HH:mm:ss") : moment().format("YYYY/MM/DD HH:mm:ss"),
 					fed_from: feed.api,
