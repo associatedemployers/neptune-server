@@ -812,7 +812,7 @@ exports.removeImageFromRotation = function (req, res, next) {
 			'error': 'Missing information from request.'
 		});
 		return;
-	} else if(!perms.edit.content) {
+	} else if(!perms.edit || !perms.edit.content) {
 		res.json({
 			'status': 'in error',
 			'error': 'You do not have the correct permissions to do that.'
