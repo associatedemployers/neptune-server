@@ -31,7 +31,7 @@ db.open(function(err, db) {
 
 exports.fetchFeatured = function(req, res) {
 	 db.collection('jobs', function (err, collection) {
-		collection.find({active: true, featured: "true"}, {
+		collection.find({active: true, featured: "true", developer: { $exists: false }}, {
 				fields: {
 					'applicants': 0,
 					'display.description.long': 0,
@@ -52,7 +52,7 @@ exports.fetchRandomFeatured = function(req, res) {
 	var count = req.params.count;
 	if(!count) return res.json([]);
 	db.collection('jobs', function (err, collection) {
-		collection.find({active: true, featured: "true"}).toArray(function (err, items) {
+		collection.find({active: true, featured: "true", developer: { $exists: false }}).toArray(function (err, items) {
 			if(!items) return res.json([]);
 			var len = items.length;
 			if(len <= count) return res.json(items);
