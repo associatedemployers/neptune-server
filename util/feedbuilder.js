@@ -30,7 +30,11 @@ exports.fetchAllJobs = function (req, res, next) {
 				res.status(500).send("Error: " + err);
 			} else {
 				req.jobs = results;
-				next();
+				if(results.length > 0) {
+					next();
+				} else {
+					res.send('No Jobs Available.');
+				}
 			}
 		});
 	});
