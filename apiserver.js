@@ -77,7 +77,6 @@ api.post('/jobs', auth.post.employer, jobs.geocode, jobs.addJob, employers.addLi
 api.get('/ie/job/add', auth.get.employer, transformreq, jobs.geocode, jobs.addJob, employers.addListingToAccount, employers.addListingToProfile);
 api.get('/featured/jobs', auth.get.guest, jobs.fetchFeatured);// Test Covered
 api.get('/random-featured/jobs/:count', auth.get.guest, jobs.fetchRandomFeatured);// Test Covered
-api.get('/search/jobs/location/:state', auth.get.guest, jobs.fetchByState, jobs.radiusSearch);
 
 //users
 api.get('/users', auth.get.admin, users.fetchAll);
