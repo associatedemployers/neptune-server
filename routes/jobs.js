@@ -74,7 +74,7 @@ exports.categoryCount = function (req, res) {
 	var cats = req.query.categories;
 	if(!cats) return res.json({ status: 'in error', error: 'No categories supplied.' });
 	db.collection('jobs', function (err, collection) {
-		collection.find({'active': true, 'display.category': { $exists: true } }).toArray(function (err, items) {
+		collection.find({'active': true, 'display.category': { $exists: true }, developer: { $exists: false } }).toArray(function (err, items) {
 			if(err) console.error(err);
 			var response = [], clen = cats.length;
 			for (var i = 0; i < clen; i++) {
@@ -92,7 +92,8 @@ exports.categoryCount = function (req, res) {
 
 exports.fetchAll = function(req, res) {
 	var filters = {
-		active: true
+		active: true,
+		developer: { $exists: false }
 	},
 		qFilters = req.query.filters,
 		limit = parseFloat(req.query.limit) || 100,
@@ -235,9 +236,11 @@ exports.addJob = function(req, res, next) {
 		return;
 	}
 	var listing = req.body.listing;
+	if(!listing.employer_id) return;
+	if(listing.notification_email == "developer@aehr.org") listing.developer = true;
 	listing.active = true;
 	db.collection('jobs', function(err, collection) {
-		collection.insert(listing, { safe: true }, function (err, result) {
+		collection.insert(listing, function (err, result) {
 			if(err) {
 				res.send({
 					'status': "in error",

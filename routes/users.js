@@ -4,7 +4,9 @@ console.log("STARTUP: Loaded users route.");
 var mongo = require('mongodb'),
 	nodemailer = require('nodemailer'),
 	mailtemplate = require('.././config/mail.templates'),
-	atob = require('atob');
+	atob = require('atob'),
+	token = require('.././config/tokens'),
+	bcrypt = require('bcrypt');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Users Collection Does Not Exist.",
@@ -78,46 +80,49 @@ exports.addUser = function(req, res, next) {
 	});
 }
 
-exports.fetchAll = function(req, res) {
-	console.log("Opened jobs fetchAll() function in users route.");	
-}
-
-exports.fetchByID = function(req, res) {
-	console.log("Opened jobs fetchByID() function in users route.");
-}
-
 exports.changePassword = function(req, res) {
 	var type = req.query.type,
 		id = req.query.account_id,
-		newPassword = req.query.new_password,
 		oldPassword = req.query.old_password,
 		email = req.query.email;
 	var collc = (type == "employer") ? 'employerusers' : 'users';
-	if(!type || !id || !newPassword || !oldPassword || !email) {
+	if(!type || !id || !req.query.new_password || !email) {
 		res.json({
 			'status': 'in error',
 			'error': 'Missing fields'
 		});
-		return
+		return;
 	}
 	db.collection(collc, function(err, collection) {
-		collection.update({'_id': new BSON.ObjectID(id), 'login.email': email, 'login.password': oldPassword}, { $set: { 'login.password': newPassword } }, function(err, numUpdated) {
-			if(err) {
-				res.json({
-					'status': 'in error',
-					'error': err
-				});
-			} else if(numUpdated < 1) {
+		collection.findOne({ '_id': new BSON.ObjectID(id), 'login.email': email }, function (err, result) {
+			if(err) throw err;
+			if(result) {
+				if(bcrypt.compareSync(atob(oldPassword), result.login.password)) {
+					var salt = bcrypt.genSaltSync(10),
+						newPassword = bcrypt.hashSync(req.query.new_password, salt);
+					collection.update({'_id': new BSON.ObjectID(id), 'login.email': email}, { $set: { 'login.password': newPassword } }, function(err, numUpdated) {
+						if(err) {
+							res.json({
+								status: 'in error',
+								error: err
+							});
+						} else {
+							res.json({
+								'status': 'ok'
+							});
+						}
+					});
+				} else {
+					res.status(401).send("Incorrect password.");
+				}
+			} else {
 				res.json({
 					'status': 'in error',
 					'error': "Couldn't find account."
 				});
-			} else {
-				res.json({
-					'status': 'ok'
-				});
 			}
 		});
+		
 	});
 }
 
@@ -301,7 +306,7 @@ exports.checkUserPassword = function (req, res, next) {
 			} else if(!result) {
 				next();
 			} else {
-				sendRecoveryEmail(email, result);
+				sendRecoveryEmail(email, result, 'users');
 				res.json({
 					'status': 'ok'
 				});
@@ -325,7 +330,7 @@ exports.checkEmployerPassword = function (req, res, next) {
 					'error': 'no users found with that email'
 				});
 			} else {
-				sendRecoveryEmail(email, result);
+				sendRecoveryEmail(email, result, 'employerusers');
 				res.json({
 					'status': 'ok'
 				});
@@ -334,25 +339,90 @@ exports.checkEmployerPassword = function (req, res, next) {
 	});
 }
 
-function sendRecoveryEmail (email, result) {
-	var transport = nodemailer.createTransport("sendmail");
-	var mailTemplate = mailtemplate.passwordRecovery(email, result.name.first, result.login.password);
-	transport.sendMail({
-		from: "no-reply@jobjupiter.com",
-		to: email,
-		subject: "Here is your password reminder, " + result.name.first,
-		text: mailTemplate.plain,
-		html: mailTemplate.html
-	}, function(error, response){
-		if(error){
-			console.log(error);
-			res.json({
-				'status': 'in error',
-				'error': 'Email server error ' + error
+exports.recoverPassword = function (req, res, next) {
+	var recovery_id = req.params.recovery;
+	db.collection('password_recovery', function (err, collection) {
+		collection.findOne({ '_id': new BSON.ObjectID(recovery_id) }, function (err, result) {
+			if(err) {
+				res.json({
+					status: 'in error',
+					error: err
+				});
+				throw err;
+			}
+			if(!result) {
+				res.json({
+					status: 'in error',
+					error: 'No recovery request found.'
+				});
+			} else {
+				console.log(result);
+				changePassword(req.query.password, result);
+				res.json({
+					status: 'ok'
+				});
+			}
+		});
+	})
+}
+
+function changePassword (password, ro) {
+	console.log(ro.type);
+	db.collection(ro.type, function (err, collection) {
+		var salt = bcrypt.genSaltSync(10),
+			hash = bcrypt.hashSync(password, salt);
+		collection.findAndModify({ '_id': new BSON.ObjectID(ro.user_id) }, [], { $set: { 'login.password': hash } }, { remove: false }, function (err, doc) {
+			if(err) throw err;
+			deleteRecovery(ro);
+		});
+	});
+}
+
+function deleteRecovery (ro) {
+	db.collection('password_recovery', function (err, collection) {
+		collection.remove({ '_id': new BSON.ObjectID(ro._id.toString()) }, function (err, doc) {
+			if(err) throw err;
+		});
+	});
+}
+
+
+
+function sendRecoveryEmail (email, result, type) {
+	db.collection('password_recovery', function (err, collection) {
+		collection.findOne({ user_id: result._id.toString() }, function (err, item) {
+			if(err) throw err;
+			if(item) {
+				collection.remove({'_id': new BSON.ObjectID(item._id.toString())}, function (err) {
+					if(err) throw err;
+				});
+			}
+			collection.insert({
+				user_id: result._id.toString(),
+				type: type
+			}, function (err, recovery) {
+				recovery = recovery[0];
+				var transport = nodemailer.createTransport("sendmail"),
+					mailTemplate = mailtemplate.passwordRecovery(email, result.name.first, recovery._id.toString());
+				transport.sendMail({
+					from: "no-reply@jobjupiter.com",
+					to: email,
+					subject: "Let's get your password reset, " + result.name.first + '!',
+					text: mailTemplate.plain,
+					html: mailTemplate.html
+				}, function(error, response){
+					if(error){
+						console.log(error);
+						res.json({
+							'status': 'in error',
+							'error': 'Email server error ' + error
+						});
+					} else {
+						transport.close(); // shut down the connection pool, no more messages
+					}
+				});
 			});
-		} else {
-			transport.close(); // shut down the connection pool, no more messages
-		}
+		});
 	});
 }
 

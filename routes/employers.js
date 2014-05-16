@@ -7,7 +7,8 @@ var mongo = require('mongodb'),
 	nodemailer = require('nodemailer'),
 	mailtemplate = require('.././config/mail.templates'),
 	md5 = require('MD5'),
-	token = require('.././config/tokens');
+	token = require('.././config/tokens'),
+	bcrypt = require('bcrypt');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Employers Collection Does Not Exist.",
@@ -36,7 +37,7 @@ db.open(function(err, db) {
 
 exports.fetchFeatured = function(req, res) {
 	db.collection('employers', function(err, collection) {
-		collection.find({ featured: true }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find({ featured: true, 'developer': { $exists: false } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
 				res.jsonp(items);
 			} else {
@@ -50,7 +51,7 @@ exports.fetchRandomFeatured = function(req, res) {
 	var count = req.params.count;
 	if(!count) return res.json([]);
 	db.collection('employers', function(err, collection) {
-		collection.find({featured: true}).toArray(function(err, items) {
+		collection.find({ featured: true, 'developer': { $exists: false } }).toArray(function(err, items) {
 			if(!items) return res.json([]);
 			var len = items.length;
 			if(len <= count) return res.json(items);
@@ -70,7 +71,7 @@ exports.fetchRandomFeatured = function(req, res) {
 
 exports.fetchAll = function(req, res) {
 	db.collection('employers', function(err, collection) {
-		collection.find( { 'listings': { $exists: true } } ).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find( { 'listings': { $exists: true }, 'developer': { $exists: false } } ).sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
 				res.jsonp(items);
 			} else {
@@ -241,8 +242,11 @@ exports.geocode = function(req, res, next) {
 }
 
 exports.createEmployerAccount = function(req, res, next) {
-	var account = req.body.account_data;
+	var account = req.body.account_data,
+		salt = bcrypt.genSaltSync(10);
+	account.login.password = bcrypt.hashSync(account.login.password, salt);
 	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'');
+
 	db.collection('employerusers', function(err, collection) {	
 		collection.insert(account, {safe:true}, function(err, result) {
 			if(err) {
@@ -475,6 +479,7 @@ exports.addListingToProfile = function(req, res) {
 }
 
 exports.firstSync = function(req, res, next) {
+	req.body.sync_data._id = req.account._id.toString();
 	var st = req.body.sync_type;
 	var sync_data = req.body.sync_data;
 	if(st == "profile") {
@@ -499,10 +504,10 @@ exports.firstSync = function(req, res, next) {
 exports.secondSync = function(req, res, next) {
 	var st = req.body.sync_type;
 	var sync_data = req.body.sync_data;
-	var listarr = req.listings_arr;
+	var listarr = req.account.listings;
 	var locationob = {
-		'city': sync_data.address.city,
-		'state': sync_data.address.state	
+		city: sync_data.address.city,
+		state: sync_data.address.state	
 	}
 	if(st == "profile") {
 		if(typeof listarr == "object") {
@@ -545,12 +550,12 @@ exports.thirdSync = function(req, res, next) {
 
 exports.syncOK = function(req, res) {
 	res.send({
-		'sync_status': 'ok'
+		sync_status: 'ok'
 	});
 }
 
 exports.fetchListings = function(req, res, next) {
-	var employer_id = req.query.employer_id;
+	var employer_id = req.account._id.toString();
 	if(!employer_id) {
 		res.send([]);
 		return;
@@ -567,7 +572,7 @@ exports.fetchListings = function(req, res, next) {
 }
 
 exports.fetchOrders = function(req, res, next) {
-	var employer_id = req.query.employer_id;
+	var employer_id = req.account._id.toString();
 	if(!employer_id) {
 		res.send([]);
 		return;
@@ -584,7 +589,7 @@ exports.fetchOrders = function(req, res, next) {
 }
 
 exports.fetchCards = function(req, res, next) {
-	var employer_id = req.query.employer_id;
+	var employer_id = req.account._id.toString();
 	if(!employer_id) {
 		res.send([]);
 		return;
@@ -604,7 +609,7 @@ exports.fetchCards = function(req, res, next) {
 }
 
 exports.deleteCard = function(req, res, next) {
-	var employer_id = req.query.employer_id;
+	var employer_id = req.account._id.toString();
 	var card = req.query.card;
 	if(!employer_id || !card) {
 		res.json({
@@ -630,7 +635,7 @@ exports.deleteCard = function(req, res, next) {
 }
 
 exports.fetchApplications = function(req, res, next) {
-	var employer_id = req.query.employer_id;
+	var employer_id = req.account._id.toString();
 	if(!employer_id) {
 		res.json({
 			"status": "in error",
@@ -655,7 +660,7 @@ exports.fetchApplications = function(req, res, next) {
 
 exports.saveLabels = function(req, res, next) {
 	var ido = req.query.ido;
-	var employer_id = req.query.employer_id;
+	var employer_id = req.account._id.toString();
 	var labels = req.query.labels;
 	db.collection('jobs', function (err, collection) {
 		collection.update({ 'employer_id': employer_id, '_id': new BSON.ObjectID(ido.listing_id), 'applicants': { $elemMatch: { 'applicant._id': ido.applicant_id } } }, { $set: { 'applicants.$.labels': labels } }, function (err, numUpdated) {
@@ -791,7 +796,7 @@ exports.removeApplication = function (req, res, next) {
 	var user = req.query.user,
 		job_id = req.query.job_id;
 	db.collection('jobs', function(err, collection) {
-		collection.findAndModify({ '_id': new BSON.ObjectID(job_id)}, [], { $pull: { 'applicants': { 'applicant._id': user._id } } }, { remove: false, new: true }, function(err, result) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(job_id), 'employer_id': req.account._id }, [], { $pull: { 'applicants': { 'applicant._id': user._id } } }, { remove: false, new: true }, function(err, result) {
 			if(err) {
 				console.log(err);
 				res.json({

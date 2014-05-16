@@ -78,7 +78,7 @@ exports.newApplication = function (req, res, next) {
 exports.sendExportedApplication = function(req, res, next) {
 	var ao = req.query.applicant;
 	var emailTo = req.query.email;
-	var employer_id = req.query.employer_id;
+	var employer_id = req.account.employer_id;
 	if(!ao || !emailTo || !employer_id) {
 		res.json({
 			'status': 'Missing a field.'

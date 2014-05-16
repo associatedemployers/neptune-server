@@ -4,7 +4,8 @@ console.log("STARTUP: Loaded transaction route.");
 var mongo = require('mongodb'),
 	braintree = require('braintree'),
 	nodemailer = require('nodemailer'),
-	mailtemplate = require('.././config/mail.templates');
+	mailtemplate = require('.././config/mail.templates'),
+	token = require('.././config/tokens');
 	
 var exception = {
 	'1001': "API ERROR 1001: Failed To Open DB."
@@ -12,9 +13,9 @@ var exception = {
 
 var gateway = braintree.connect({
 	environment: braintree.Environment.Sandbox,
-	merchantId: "cygg57x8jkn35nwd",
-	publicKey: "ngppkqdxpd77j2zk",
-	privateKey: "f161459c37c5e3f634b3cf4aa9779d75"
+	merchantId: token.braintree.merchantId || "cygg57x8jkn35nwd",
+	publicKey: token.braintree.publicKey || "ngppkqdxpd77j2zk",
+	privateKey: token.braintree.privateKey || "f161459c37c5e3f634b3cf4aa9779d75"
 });
 
 var Server = mongo.Server,
