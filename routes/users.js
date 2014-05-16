@@ -34,7 +34,9 @@ db.open(function(err, db) {
 });
 
 exports.addUser = function(req, res, next) {
-	var account = req.body.account_data;
+	var account = req.body.account_data,
+		salt = bcrypt.genSaltSync(10);
+	account.login.password = bcrypt.hashSync(account.login.password, salt);
 	if(!account) {
 		res.send({
 			'created': false,
@@ -44,7 +46,7 @@ exports.addUser = function(req, res, next) {
 	}
 		
 	db.collection('users', function(err, collection) {
-		collection.insert(account, {safe:true}, function(err, result) {
+		collection.insert(account, function(err, result) {
 			if(err) {
 				req.account.error = true;
 				res.send({
@@ -232,16 +234,17 @@ exports.fetchSavedJobs = function (req, res, next) {
 		res.json({
 			'error': 'Missing fields'
 		});
-		return
+		return;
 	}
+
 	db.collection('users', function(err, collection) {
-		collection.findOne({ '_id': new BSON.ObjectID(user_id), 'login.password': password }, { fields: { '_id': 0, 'saved_jobs': 1 } }, function(err, result) {
+		collection.findOne({ '_id': new BSON.ObjectID(user_id) }, { fields: { '_id': 0, 'saved_jobs': 1 } }, function(err, result) {
 			if(err) {
 				console.log(err);
 				res.json({
 					'error': err
 				});
-			} else if(result.saved_jobs) {
+			} else if(result.saved_jobs && bcrypt.compareSync(password, result.login.password)) {
 				res.json(result.saved_jobs);
 			} else {
 				res.json([]);
@@ -262,7 +265,7 @@ exports.deleteSavedJob = function (req, res, next) {
 		return
 	}
 	db.collection('users', function(err, collection) {
-		collection.findAndModify({ '_id': new BSON.ObjectID(user_id), 'login.password': password,  }, [], { $pull: { 'saved_jobs': {'job_id': job_id } } }, { remove: false, new: true }, function(err, result) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(user_id) }, [], { $pull: { 'saved_jobs': {'job_id': job_id } } }, { remove: false, new: true }, function(err, result) {
 			if(err) {
 				console.log(err);
 				res.json({
@@ -443,11 +446,11 @@ exports.fetchApplications = function (req, res, next) {
 		res.send('Invalid Request.');
 	}
 	db.collection('users', function(err, collection) {
-		collection.findOne({ '_id': new BSON.ObjectID(id), 'login.password': password, 'login.email': email }, { fields: { '_id': 0, 'applications': 1 } }, function(err, result) {
+		collection.findOne({ '_id': new BSON.ObjectID(id), 'login.email': email }, { fields: { '_id': 0, 'applications': 1 } }, function(err, result) {
 			if(err) {
 				res.status(500).send(err);
 				console.error(err);
-			} else if(result.applications) {
+			} else if(result.applications && bcrypt.compareSync(password, result.login.password)) {
 				res.json(result.applications);
 			} else {
 				res.json([]);
@@ -467,23 +470,37 @@ exports.removeApplication = function (req, res, next) {
 		return
 	}
 	db.collection('users', function(err, collection) {
-		collection.findAndModify({ '_id': new BSON.ObjectID(user._id), 'login.password': user.password, 'login.email': user.email }, [], { $pull: { 'applications': {'job_id': job_id } } }, { remove: false, new: true }, function(err, result) {
+		collection.findOne({ '_id': new BSON.ObjectID(user._id) }, function (err, usr) {
 			if(err) {
-				console.log(err);
 				res.json({
-					'status': 'in error',
-					'error': err
+					status: 'Could not fetch your acccount',
+					error: err
+				});
+				throw err;
+			}
+			if(bcrypt.compareSync(user.password, usr.login.password)) {
+				collection.findAndModify({ '_id': new BSON.ObjectID(user._id), 'login.email': user.email }, [], { $pull: { 'applications': {'job_id': job_id } } }, { remove: false, new: true }, function(err, result) {
+					if(err) {
+						console.log(err);
+						res.json({
+							'status': 'in error',
+							'error': err
+						});
+					} else {
+						next();
+					}
 				});
 			} else {
-				next();
+				res.status(401).send("Unauthorized.");
 			}
 		});
+			
 	});
 }
 
 exports.changeEmail = function (req, res, next) {
 	var q = req.query;
-	var password = q.password,
+	var password = atob(q.password),
 		id = q.id,
 		email = q.email,
 		login_type = q.login_type;
@@ -496,45 +513,71 @@ exports.changeEmail = function (req, res, next) {
 	}
 	if(login_type == "employer") {
 		db.collection('employerusers', function(err, collection) {
-			collection.findAndModify({ '_id': new BSON.ObjectID(id), 'login.password': password }, [], { $set: { 'login.email': email } }, { remove: false }, function(err, result) {
+			collection.findOne({ '_id': new BSON.ObjectID(id) }, function (err, usr) {
 				if(err) {
-					console.log(err);
 					res.json({
-						'status': 'in error',
-						'error': err
+						status: 'Could not fetch your acccount',
+						error: err
+					});
+					throw err;
+				}
+				if(bcrypt.compareSync(password, usr.login.password)) {
+					collection.findAndModify({ '_id': new BSON.ObjectID(id) }, [], { $set: { 'login.email': email } }, { remove: false }, function(err, result) {
+						if(err) {
+							console.log(err);
+							res.json({
+								'status': 'in error',
+								'error': err
+							});
+						} else {
+							if(!result) {
+								res.json({
+									'status': 'in error',
+									'error': 'Could not update email. Please contact us for assistance.'
+								});
+							} else {
+								next();
+							}
+						}
 					});
 				} else {
-					if(!result) {
-						res.json({
-							'status': 'in error',
-							'error': 'Could not update email. Please contact us for assistance.'
-						});
-					} else {
-						next();
-					}
+					res.status(401).send("Unauthorized.");
 				}
 			});
 		});
 	} else {
 		db.collection('users', function(err, collection) {
-			collection.findAndModify({ '_id': new BSON.ObjectID(id), 'login.password': password }, [], { $set: { 'login.email': email } }, { remove: false }, function(err, result) {
+			collection.findOne({ '_id': new BSON.ObjectID(id) }, function (err, usr) {
 				if(err) {
-					console.log(err);
 					res.json({
-						'status': 'in error',
-						'error': err
+						status: 'Could not fetch your acccount',
+						error: err
+					});
+					throw err;
+				}
+				if(bcrypt.compareSync(password, usr.login.password)) {
+					collection.findAndModify({ '_id': new BSON.ObjectID(id) }, [], { $set: { 'login.email': email } }, { remove: false }, function(err, result) {
+						if(err) {
+							console.log(err);
+							res.json({
+								'status': 'in error',
+								'error': err
+							});
+						} else {
+							if(!result) {
+								res.json({
+									'status': 'in error',
+									'error': 'Could not update email. Please contact us for assistance.'
+								});
+							} else {
+								res.json({
+									'status': 'ok'
+								});
+							}
+						}
 					});
 				} else {
-					if(!result) {
-						res.json({
-							'status': 'in error',
-							'error': 'Could not update email. Please contact us for assistance.'
-						});
-					} else {
-						res.json({
-							'status': 'ok'
-						});
-					}
+					res.status(401).send("Unauthorized.");
 				}
 			});
 		});
