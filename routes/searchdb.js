@@ -36,7 +36,7 @@ exports.process = function(req, res, next) {
 		prefiltered.forEach(function (item) {
 			if(!item.obj.fed_from) {
 				req.results.push(item);
-			} else {
+			} else if(!item.obj.developer) {
 				allocated.push(item);
 			}
 		});

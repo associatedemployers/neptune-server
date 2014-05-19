@@ -202,7 +202,7 @@ function iterateAlerts (alerts) {
 				return qs.length > 2
 			});
 		db.collection('jobs', function(err, collection) { //connect to jobs collection
-			collection.find({ active: true }).sort( { time_stamp: -1 } ).toArray(function(err, items) { //press all jobs into an array
+			collection.find({ active: true, developer: { $exists: false } }).sort( { time_stamp: -1 } ).toArray(function(err, items) { //press all jobs into an array
 				var results = [];
 				items.forEach(function(item) { //iterate over the items array
 					var s = JSON.stringify(item).toLowerCase(); //convert each item in items to a string

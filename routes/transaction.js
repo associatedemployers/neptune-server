@@ -1,4 +1,4 @@
-// Employers Route
+// Transaction Route
 console.log("STARTUP: Loaded transaction route.");
 
 var mongo = require('mongodb'),
@@ -12,23 +12,23 @@ var exception = {
 }
 
 var gateway = braintree.connect({
-	environment: braintree.Environment.Sandbox,
-	merchantId: token.braintree.merchantId || "cygg57x8jkn35nwd",
-	publicKey: token.braintree.publicKey || "ngppkqdxpd77j2zk",
-	privateKey: token.braintree.privateKey || "f161459c37c5e3f634b3cf4aa9779d75"
+	environment: braintree.Environment.Production,
+	merchantId: token.braintree.merchantId,
+	publicKey: token.braintree.publicKey,
+	privateKey: token.braintree.privateKey
 });
 
 var Server = mongo.Server,
-    Db = mongo.Db,
-    BSON = mongo.BSONPure;
- 
+	Db = mongo.Db,
+	BSON = mongo.BSONPure;
+
 var server = new Server('localhost', 27017, {auto_reconnect: true});
 db = new Db('ae', server, {safe: true}, {strict: false});
 
 db.open(function(err, db) {
-    if(!err) {
-        console.log("STARTUP: Connected to database on transaction route.");
-    } else {
+	if(!err) {
+		console.log("STARTUP: Connected to database on transaction route.");
+	} else {
 		console.log(exception['1001']);
 	}
 });
@@ -97,7 +97,14 @@ exports.process = function(req, res, next) {
 	}
 	if(parseFloat(order.total) > 0) {
 		gateway.transaction.sale(saleObject, function(err, result) {
-			if(result.success) {
+			if(err) {
+				res.json({
+					status: "in error",
+					error: err
+				});
+				throw JSON.stringify(err);
+			}
+			if(result && result.success) {
 				req.transactionResult = result;
 				var template;
 				if(order.type == "listing") {
@@ -125,8 +132,8 @@ exports.process = function(req, res, next) {
 				next();
 			} else {
 				res.json({
-					'status': "in error",
-					'error': result.message
+					status: "in error",
+					error: result.message
 				});
 			}
 		});

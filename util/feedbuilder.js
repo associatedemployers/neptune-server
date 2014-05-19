@@ -24,7 +24,7 @@ db.open(function(err, db) {
 
 exports.fetchAllJobs = function (req, res, next) {
 	db.collection('jobs', function (err, collection) {
-		collection.find({'active': true, 'fed_from': { $exists: false } }).sort({ 'time_stamp': -1 }).toArray(function (err, results) {
+		collection.find({'active': true, 'fed_from': { $exists: false }, developer: { $exists: false } }).sort({ 'time_stamp': -1 }).toArray(function (err, results) {
 			if(err) {
 				console.error(err);
 				res.status(500).send("Error: " + err);
