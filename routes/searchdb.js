@@ -30,13 +30,13 @@ exports.process = function(req, res, next) {
 	db.command({ text: 'jobs', search: query }, function(err, curs) {
 		var prefiltered = curs.results.filter(function(result) {
 			count++;
-			return (result.obj.active) ? count < 200 : false;
+			return (result.obj.active && !result.obj.developer) ? count < 200 : false;
 		}), allocated = [];
 		req.results = [];
 		prefiltered.forEach(function (item) {
 			if(!item.obj.fed_from) {
 				req.results.push(item);
-			} else if(!item.obj.developer) {
+			} else {
 				allocated.push(item);
 			}
 		});
