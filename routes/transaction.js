@@ -52,7 +52,8 @@ exports.process = function(req, res, next) {
 			amount: order.total,
 			customer: {
 				firstName: order.billing.name.first,
-				lastName: order.billing.name.last
+				lastName: order.billing.name.last,
+				email: order.email
 			},
 			creditCard: {
 				number: order.card.number,
@@ -76,13 +77,14 @@ exports.process = function(req, res, next) {
 			amount: order.total,
 			customer: {
 				firstName: order.billing.name.first,
-				lastName: order.billing.name.last
+				lastName: order.billing.name.last,
+				email: order.email
 			},
 			creditCard: {
 				number: order.card.number,
 				cvv: order.card.cvv,
 				expirationMonth: order.card.expiration.month,
-				expirationYear: order.card.expiration.year	
+				expirationYear: order.card.expiration.year
 			},
 			billing: {
 				streetAddress: order.billing.address.line1,
