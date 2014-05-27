@@ -69,6 +69,15 @@ exports.createNewUser = function (req, res, next) {
 	var user = req.query.user;
 		user.verfurl = req.verfurl; //set some of these vars inside the user object.
 		user.activated = false;
+	for (var key in user.perms) {
+		if(typeof user.perms[key] === "object") {
+			for(var nestedkey in user.perms[key]) {
+				user.perms[key][nestedkey] = user.perms[key][nestedkey] == "true";
+			}
+		} else {
+			user.perms[key] = user.perms[key] == "true";
+		}
+	}
 	db.collection('administrationusers', function(err, collection) {
 		collection.insert(user, function(err, results) {
 			if(err) {

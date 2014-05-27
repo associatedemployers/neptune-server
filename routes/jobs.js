@@ -3,7 +3,8 @@ console.log("STARTUP: Loaded jobs route.");
 
 var mongo = require('mongodb'),
 	gm = require('googlemaps'),
-	haversine = require('haversine');
+	haversine = require('haversine'),
+	integrations = require('./external-integrations');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Jobs Collection Does Not Exist.",
@@ -247,6 +248,7 @@ exports.addJob = function(req, res, next) {
 					'error': "Couldn't create listing."
 				});
 			} else {
+				integrations.slack.signup.listing(result[0]);
 				req.listing_id = result[0]._id;
 				next();
 			}

@@ -8,7 +8,8 @@ var mongo = require('mongodb'),
 	mailtemplate = require('.././config/mail.templates'),
 	md5 = require('MD5'),
 	token = require('.././config/tokens'),
-	bcrypt = require('bcrypt');
+	bcrypt = require('bcrypt'),
+	integrations = require('./external-integrations');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Employers Collection Does Not Exist.",
@@ -256,11 +257,11 @@ exports.createEmployerAccount = function(req, res, next) {
 					'error': 'Internal Error: ' + err
 				});
 			} else {
+				integrations.slack.signup.employer(result[0]);
 				req.body.employerid = result[0]._id;
 				var verificationLink =	md5(account.name.company);
 				db.collection('verify', function(err, vrf) {
 					vrf.insert({ 'employer_id': req.body.employerid, 'link_address': verificationLink }, { safe: true }, function(err, reslt) {
-						
 						var transport = nodemailer.createTransport("sendmail");
 						var mailTemplate = mailtemplate.newEmployer(account.name, verificationLink);
 						transport.sendMail({

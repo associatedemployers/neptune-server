@@ -6,7 +6,8 @@ var mongo = require('mongodb'),
 	mailtemplate = require('.././config/mail.templates'),
 	atob = require('atob'),
 	token = require('.././config/tokens'),
-	bcrypt = require('bcrypt');
+	bcrypt = require('bcrypt'),
+	integrations = require('./external-integrations');
 
 var exception = {
 	'1000_2': "API ERROR 1000:2: Users Collection Does Not Exist.",
@@ -44,7 +45,6 @@ exports.addUser = function(req, res, next) {
 		});
 		return;
 	}
-		
 	db.collection('users', function(err, collection) {
 		collection.insert(account, function(err, result) {
 			if(err) {
@@ -58,7 +58,7 @@ exports.addUser = function(req, res, next) {
 				res.send({
 					'created': true
 				});
-				
+				integrations.slack.signup.user(result[0]);
 				var transport = nodemailer.createTransport("sendmail");
 				var mailTemplate = mailtemplate.newUser(account.name);
 				transport.sendMail({
