@@ -233,7 +233,7 @@ exports.storeCard = function(req, res, next) {
 }
 
 exports.validateCoupon = function(req, res, next) {
-	var couponCode = req.query.code,
+	var couponCode = req.query.code.toLowerCase(),
 		emp_id = req.query.employer_id,
 		product = req.query.product,
 		sc;
@@ -253,7 +253,7 @@ exports.validateCoupon = function(req, res, next) {
 				});
 			} else {
 				result.content.forEach(function(coupon) {
-					if(coupon.code == couponCode) {
+					if(coupon.code.toLowerCase() == couponCode) {
 						if(coupon.product == product) {
 							if(coupon.one_time == "true") {
 								var x = false;
@@ -280,13 +280,13 @@ exports.validateCoupon = function(req, res, next) {
 				if(sc) {
 					delete sc.used;
 					res.send({
-						'status': 'ok',
-						'coupon': sc
+						status: 'ok',
+						coupon: sc
 					});
 				} else {
 					res.send({
-						'status': 'in error',
-						'error': 'No coupon found with that code.'
+						status: 'in error',
+						error: 'No coupon found with that code.'
 					});
 				}
 			}
