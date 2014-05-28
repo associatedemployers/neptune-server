@@ -154,7 +154,7 @@ exports.checkExistingEmployerEmail = function(req, res, next) {
 		account.login = {};
 		account.login.email = req.query.email;
 	}
-	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'');
+	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'').toLowerCase();
 	db.collection('employerusers', function(err, collection) {
 		collection.findOne({'login.email': account.login.email}, function(err, result) {
 			if(result) {
@@ -177,7 +177,7 @@ exports.checkExistingUserEmail = function(req, res, next) {
 		account.login = {};
 		account.login.email = req.query.email;
 	}
-	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'');
+	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'').toLowerCase();
 	db.collection('users', function(err, collection) {
 		collection.findOne({'login.email': account.login.email}, function(err, result) {
 			if(result) {
@@ -246,7 +246,7 @@ exports.createEmployerAccount = function(req, res, next) {
 	var account = req.body.account_data,
 		salt = bcrypt.genSaltSync(10);
 	account.login.password = bcrypt.hashSync(account.login.password, salt);
-	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'');
+	account.login.email = account.login.email.replace(/(^\s+|\s+$)/g,'').toLowerCase();
 
 	db.collection('employerusers', function(err, collection) {	
 		collection.insert(account, {safe:true}, function(err, result) {

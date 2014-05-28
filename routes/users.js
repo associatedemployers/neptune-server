@@ -37,6 +37,7 @@ db.open(function(err, db) {
 exports.addUser = function(req, res, next) {
 	var account = req.body.account_data,
 		salt = bcrypt.genSaltSync(10);
+	account.login.email = account.login.email.toLowerCase();
 	account.login.password = bcrypt.hashSync(account.login.password, salt);
 	if(!account) {
 		res.send({
@@ -282,7 +283,7 @@ exports.deleteSavedJob = function (req, res, next) {
 }
 
 exports.checkUserPassword = function (req, res, next) {
-	var email = req.query.email;
+	var email = req.query.email.toLowerCase();
 	var matched = false;
 	if(recoveredEmails.length > 0) {
 		recoveredEmails.forEach(function(em) {
@@ -319,7 +320,7 @@ exports.checkUserPassword = function (req, res, next) {
 }
 
 exports.checkEmployerPassword = function (req, res, next) {
-	var email = req.query.email;
+	var email = req.query.email.toLowerCase();
 	db.collection('employerusers', function(err, collection) {
 		collection.findOne({ 'login.email': email }, function(err, result) {
 			if(err) {
@@ -502,7 +503,7 @@ exports.changeEmail = function (req, res, next) {
 	var q = req.query;
 	var password = atob(q.password),
 		id = q.id,
-		email = q.email,
+		email = q.email.toLowerCase(),
 		login_type = q.login_type;
 	if(!password || !email || !id || !login_type) {
 		res.json({
@@ -585,7 +586,7 @@ exports.changeEmail = function (req, res, next) {
 }
 
 exports.checkExistingEmailEmployer = function (req, res, next) {
-	req.query.email = req.query.email.replace(/(^\s+|\s+$)/g,'');
+	req.query.email = req.query.email.replace(/(^\s+|\s+$)/g,'').toLowerCase();
 	db.collection('employerusers', function(err, collection) {
 		collection.findOne({'login.email': req.query.email}, function(err, result) {
 			if(result) {
