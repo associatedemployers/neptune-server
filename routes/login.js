@@ -29,7 +29,7 @@ db.open(function(err, db) {
 
 exports.checkemp = function(req, res, next) {
 	db.collection('employerusers', function(err, collection) {
-		collection.findOne({ 'login.email': req.body.email }, function(err, result) {
+		collection.findOne({ 'login.email': req.body.email.toLowerCase() }, function(err, result) {
 			if (err) {
 				console.log("LOG: Error occurred in login.process(): " + err);
 				res.status(500).json("API Server error in login.process");
@@ -49,7 +49,7 @@ exports.checkemp = function(req, res, next) {
 
 exports.checkusr = function(req, res) {
 	db.collection('users', function(err, collection) {
-		collection.findOne({ 'login.email': req.body.email }, function(err, result) {// repeating the lookup in the users collection
+		collection.findOne({ 'login.email': req.body.email.toLowerCase() }, function(err, result) {// repeating the lookup in the users collection
 			if (err) {
 				console.log("LOG: Error occurred in login.process(): " + err);
 				res.status(500).send("API Server error in login.process: " + err);
