@@ -38,7 +38,7 @@ db.open(function(err, db) {
 
 exports.fetchFeatured = function(req, res) {
 	db.collection('employers', function(err, collection) {
-		collection.find({ featured: true, 'developer': { $exists: false } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find({ featured: true, developer: { $exists: false } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
             if(req.query.callback !== null) {
 				res.jsonp(items);
 			} else {
@@ -342,7 +342,7 @@ exports.fetchByTag = function(req, res) {
 	var tags = req.query.tags;
 	console.log(JSON.stringify(tags));
 	db.collection('employers', function(err, collection) {
-		collection.find({'listings': { $exists: true }, 'profile.tags': { $all: tags } }).toArray(function(err, items) {
+		collection.find({'listings': { $exists: true }, 'profile.tags': { $all: tags }, developer: { $exists: false } }).toArray(function(err, items) {
 			if(err) {
 				res.send(err);
 				return;
@@ -360,7 +360,7 @@ exports.fetchByState = function(req, res, next) {
 		return;	
 	}
 	db.collection('employers', function(err, collection) {
-		collection.find({'listings': { $exists: true }, "address.state": state }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
+		collection.find({'listings': { $exists: true }, "address.state": state, developer: { $exists: false } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
 			if(err) {
 				res.send(err);
 				return;
