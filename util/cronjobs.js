@@ -41,8 +41,7 @@ var membercheck = new cronJob('* * * * *', function(){
 		}); 
 		
 		response.on("end", function (err) {
-			buffer = buffer.replace(RegExp('"', "g"), '').toLowerCase().split(",");
-			flagAccounts(buffer);
+			flagAccounts(JSON.parse(buffer));
 		});
 	});
 }, null, true);
