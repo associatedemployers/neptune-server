@@ -122,7 +122,7 @@ exports.process = function(req, res, next) {
 				transport.sendMail({
 					from: "Job Jupiter <no-reply@jobjupiter.com>",
 					to: order.email,
-					subject: "Thanks for your order, " + order.billing.name.company,
+					subject: "Thanks for your order, " + order.billing.name.company || "valued customer!",
 					text: template.plain,
 					html: template.html
 				}, function(error, response){
