@@ -431,7 +431,10 @@ exports.fetchListings = function (req, res, next) {
 	if(qFilters) {
 		for (var key in qFilters) {
 			if(!filters.hasOwnProperty(key)) {// if we are not on a default
-				if(qFilters[key] == 'NOT_SET') {
+				var val = qFilters[key];
+				if(val == "false" || val == "true") {
+					filters[key] = (val == "true");
+				} else if(val == 'NOT_SET') {
 					filters[key] = {
 						$exists: false
 					}
@@ -439,16 +442,15 @@ exports.fetchListings = function (req, res, next) {
 					filters[key] = new BSON.ObjectID(qFilters[key]);
 				} else if(key.indexOf('REGEX:') > -1) {
 					filters[key.replace('REGEX:', "")] = {
-						$regex: qFilters[key],
+						$regex: val,
 						$options: 'i'
 					};// support regex
 				} else {
-					filters[key] = qFilters[key];// overwrite it
+					filters[key] = val;// overwrite it
 				}
 			}
 		}
 	}
-	console.log(filters);
 	db.collection('jobs', function (err, collection) {
 		collection.find(filters).sort(sort).skip((page - 1) * limit).limit(limit).toArray(function (err, items) {
 			if(err) console.error(err);
