@@ -239,13 +239,13 @@ exports.fetchSavedJobs = function (req, res, next) {
 	}
 
 	db.collection('users', function(err, collection) {
-		collection.findOne({ '_id': new BSON.ObjectID(user_id) }, { fields: { '_id': 0, 'saved_jobs': 1 } }, function(err, result) {
+		collection.findOne({ '_id': new BSON.ObjectID(user_id) }, { fields: { '_id': 0, 'saved_jobs': 1, 'login.password': 1 } }, function(err, result) {
 			if(err) {
 				console.log(err);
 				res.json({
 					'error': err
 				});
-			} else if(result.saved_jobs && bcrypt.compareSync(password, result.login.password)) {
+			} else if(result.saved_jobs && bcrypt.compareSync(atob(password), result.login.password)) {
 				res.json(result.saved_jobs);
 			} else {
 				res.json([]);
@@ -441,13 +441,13 @@ function filterRecovered (email) {
 
 exports.fetchApplications = function (req, res, next) {
 	var email = req.query.email;
-	var password = req.query.password;
+	var password = atob(req.query.password);
 	var id = req.query.user_id;
 	if(!email || !password || !id) {
 		res.send('Invalid Request.');
 	}
 	db.collection('users', function(err, collection) {
-		collection.findOne({ '_id': new BSON.ObjectID(id), 'login.email': email }, { fields: { '_id': 0, 'applications': 1 } }, function(err, result) {
+		collection.findOne({ '_id': new BSON.ObjectID(id), 'login.email': email }, { fields: { '_id': 0, 'applications': 1, 'login.password': 1 } }, function(err, result) {
 			if(err) {
 				res.status(500).send(err);
 				console.error(err);

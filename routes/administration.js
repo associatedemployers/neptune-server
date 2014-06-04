@@ -393,7 +393,7 @@ exports.fetchOrders = function (req, res, next) {
 					filters[key.replace('REGEX:', "")] = {
 						$regex: qFilters[key],
 						$options: 'i'
-					};// suport regex
+					};// support regex
 				} else {
 					filters[key] = qFilters[key];// overwrite it
 				}
@@ -441,13 +441,14 @@ exports.fetchListings = function (req, res, next) {
 					filters[key.replace('REGEX:', "")] = {
 						$regex: qFilters[key],
 						$options: 'i'
-					};// suport regex
+					};// support regex
 				} else {
 					filters[key] = qFilters[key];// overwrite it
 				}
 			}
 		}
 	}
+	console.log(filters);
 	db.collection('jobs', function (err, collection) {
 		collection.find(filters).sort(sort).skip((page - 1) * limit).limit(limit).toArray(function (err, items) {
 			if(err) console.error(err);
@@ -577,7 +578,7 @@ exports.fetchEmployers = function (req, res, next) {
 					filters[key.replace('REGEX:', "")] = {
 						$regex: qFilters[key],
 						$options: 'i'
-					};// suport regex
+					};// support regex
 				} else {
 					filters[key] = qFilters[key];// overwrite it
 				}
@@ -718,7 +719,7 @@ exports.fetchUsers = function (req, res, next) {
 					filters[key.replace('REGEX:', "")] = {
 						$regex: qFilters[key],
 						$options: 'i'
-					};// suport regex
+					};// support regex
 				} else {
 					filters[key] = qFilters[key];// overwrite it
 				}
