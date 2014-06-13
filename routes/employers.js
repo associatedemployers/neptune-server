@@ -8,6 +8,7 @@ var mongo = require('mongodb'),
 	mailtemplate = require('.././config/mail.templates'),
 	md5 = require('MD5'),
 	token = require('.././config/tokens'),
+	cronjobs = require('.././util/cronjobs'),
 	bcrypt = require('bcrypt'),
 	integrations = require('./external-integrations');
 
@@ -257,29 +258,30 @@ exports.createEmployerAccount = function(req, res, next) {
 					'error': 'Internal Error: ' + err
 				});
 			} else {
-				integrations.slack.signup.employer(result[0]);
-				req.body.employerid = result[0]._id;
-				var verificationLink =	md5(account.name.company);
-				db.collection('verify', function(err, vrf) {
-					vrf.insert({ 'employer_id': req.body.employerid, 'link_address': verificationLink }, { safe: true }, function(err, reslt) {
-						var transport = nodemailer.createTransport("sendmail");
-						var mailTemplate = mailtemplate.newEmployer(account.name, verificationLink);
-						transport.sendMail({
-							from: "no-reply@jobjupiter.com",
-							to: account.login.email,
-							subject: "Welcome from JobJupiter, " + account.name.company,
-							text: mailTemplate.plain,
-							html: mailTemplate.html
-						}, function(error, response){
-							if(error){
-								console.log(error);
-							}
-							transport.close(); // shut down the connection pool, no more messages
+				cronjobs.memberCheck(function () {
+					integrations.slack.signup.employer(result[0]);
+					req.body.employerid = result[0]._id;
+					var verificationLink =	md5(account.name.company);
+					db.collection('verify', function(err, vrf) {
+						vrf.insert({ 'employer_id': req.body.employerid, 'link_address': verificationLink }, { safe: true }, function(err, reslt) {
+							var transport = nodemailer.createTransport("sendmail");
+							var mailTemplate = mailtemplate.newEmployer(account.name, verificationLink);
+							transport.sendMail({
+								from: "no-reply@jobjupiter.com",
+								to: account.login.email,
+								subject: "Welcome from JobJupiter, " + account.name.company,
+								text: mailTemplate.plain,
+								html: mailTemplate.html
+							}, function(error, response){
+								if(error){
+									console.log(error);
+								}
+								transport.close(); // shut down the connection pool, no more messages
+							});
+							next();
 						});
-						next();
 					});
 				});
-				
 			}
 		});
 	});

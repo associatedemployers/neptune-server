@@ -26,6 +26,11 @@ db.open(function(err, db) {
 	}
 });
 
+exports.memberCheck = function (callback) {
+	timeToExecute = new Date().getTime();
+	pullMembers(callback);
+}
+
 /*XXXXXXXXXXXXXXXXXXXXX
 XXXX cron jobs XXXXXXXX
 XXXXXXXXXXXXXXXXXXXXX*/
@@ -33,17 +38,7 @@ XXXXXXXXXXXXXXXXXXXXX*/
 //AE Member Checker
 var membercheck = new cronJob('* * * * *', function(){
 	timeToExecute = new Date().getTime();
-	http.get('http://associatedemployers.org/fetchEmails.php?token=aejobs', function (response) { 
-		var buffer = "";
-		
-		response.on("data", function (chunk) {
-			buffer += chunk;
-		}); 
-		
-		response.on("end", function (err) {
-			flagAccounts(JSON.parse(buffer));
-		});
-	});
+	pullMembers();
 }, null, true);
 
 var jobcheck = new cronJob('* * * * *', function(){
@@ -70,7 +65,21 @@ var employerManagementTask = new cronJob('* * * * *', function(){
 membercheck.start();
 jobcheck.start();
 
-function flagAccounts (emails) {
+function pullMembers (callback) {
+	http.get('http://associatedemployers.org/fetchEmails.php?token=aejobs', function (response) { 
+		var buffer = "";
+		
+		response.on("data", function (chunk) {
+			buffer += chunk;
+		}); 
+		
+		response.on("end", function (err) {
+			flagAccounts(JSON.parse(buffer), callback);
+		});
+	});
+}
+
+function flagAccounts (emails, callback) {
 	db.collection('employerusers', function(err, collection) {
 		collection.update({'ae_member': { $exists: true } }, { $unset: { 'ae_member': "" } }, { multi: true }, function(err, result) {
 			collection.update({'login.email': { $in: emails } }, { $set: { 'ae_member': true } }, { multi: true }, function(err, updated) {
@@ -80,6 +89,7 @@ function flagAccounts (emails) {
 					timeToExecute = (new Date().getTime() - timeToExecute) / 1000;
 					console.log("Current AE Members: " + updated + " | Operation took " + timeToExecute + "sec");
 				}
+				if(callback) callback();
 			});
 		});
 	});

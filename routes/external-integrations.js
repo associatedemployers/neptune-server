@@ -25,8 +25,9 @@ exports.slack = {
 			);
 		},
 		listing: function (listing) {
+			var name = (listing.name) ? listing.name.company : "Someone";
 			slackapi.send(
-				listing.name.company + ' has just posted "' + listing.display.title + '"! <https://jobjupiter.com/#!/job/' + listing._id + '|Check it out!>',
+				name + ' has just posted "' + listing.display.title + '"! <https://jobjupiter.com/#!/job/' + listing._id + '|Check it out!>',
 				tokens.slack_integration.jupiter_channel,
 				bn[0]
 			);
