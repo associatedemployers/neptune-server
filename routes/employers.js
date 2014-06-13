@@ -487,7 +487,7 @@ exports.firstSync = function(req, res, next) {
 	var sync_data = req.body.sync_data;
 	if(st == "profile") {
 		db.collection('employerusers', function(err, collection) {
-			collection.findAndModify( { '_id': new BSON.ObjectID(sync_data._id) }, [], { $set: { 'address': sync_data.address, 'profile.phone': sync_data.phone, 'profile.phone_formatted': sync_data.phone_formatted, 'profile.about': sync_data.profile.about, 'profile.tags': sync_data.profile.tags, 'profile.files': sync_data.profile.files } }, {remove:false, new:true}, function(err, result) {
+			collection.findAndModify( { '_id': new BSON.ObjectID(sync_data._id) }, [], { $set: { 'address': sync_data.address, 'profile.phone': sync_data.phone, 'profile.phone_formatted': sync_data.phone_formatted, 'profile.about': sync_data.profile.about, 'profile.tags': sync_data.profile.tags, 'profile.files': sync_data.profile.files, name: sync_data.name } }, {remove:false, new:true}, function(err, result) {
 				if(err) {
 					res.send({
 						'sync_status': 'error',
