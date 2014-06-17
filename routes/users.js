@@ -479,8 +479,8 @@ exports.removeApplication = function (req, res, next) {
 				});
 				throw err;
 			}
-			if(bcrypt.compareSync(user.password, usr.login.password)) {
-				collection.findAndModify({ '_id': new BSON.ObjectID(user._id), 'login.email': user.email }, [], { $pull: { 'applications': {'job_id': job_id } } }, { remove: false, new: true }, function(err, result) {
+			if(bcrypt.compareSync(atob(user.password), usr.login.password)) {
+				collection.findAndModify({ '_id': new BSON.ObjectID(usr._id.toString()), 'login.email': user.email }, [], { $pull: { 'applications': {'job_id': job_id } } }, { remove: false, new: true }, function(err, result) {
 					if(err) {
 						console.log(err);
 						res.json({

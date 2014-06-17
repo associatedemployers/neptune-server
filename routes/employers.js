@@ -799,7 +799,7 @@ exports.removeApplication = function (req, res, next) {
 	var user = req.query.user,
 		job_id = req.query.job_id;
 	db.collection('jobs', function(err, collection) {
-		collection.findAndModify({ '_id': new BSON.ObjectID(job_id), 'employer_id': req.account._id }, [], { $pull: { 'applicants': { 'applicant._id': user._id } } }, { remove: false, new: true }, function(err, result) {
+		collection.findAndModify({ '_id': new BSON.ObjectID(job_id) }, [], { $pull: { 'applicants': { 'applicant._id': user._id } } }, { remove: false, new: true }, function(err, result) {
 			if(err) {
 				console.log(err);
 				res.json({
