@@ -28,6 +28,7 @@ var express = require('express'),
 	indexer = require('./routes/indexer'),
 	transaction = require('./routes/transaction'),
 	administration = require('./routes/administration'),
+	compare = require('./routes/compare'),
 	cronjobs = require('./util/cronjobs'),
 	notifications = require('./util/notifications'),
 	analytics = require('./util/analytics'),
@@ -164,6 +165,8 @@ api.get('/admin/delete-user', tokenauth.get.admin, administration.deleteUserAcco
 api.get('/admin/update-content', tokenauth.get.admin, administration.updateContent);// Test Covered
 api.get('/admin/add-image-to-rotation', tokenauth.get.admin, administration.addImageToRotation);
 api.get('/admin/remove-image-from-rotation', tokenauth.get.admin, administration.removeImageFromRotation);
+
+api.get('/admin/compare-feed', tokenauth.get.admin, compare.process, compare.generate);
 
 api.get('/admin/feeds/register', tokenauth.get.admin, administration.registerFeed);
 api.get('/admin/feeds', tokenauth.get.admin, administration.fetchFeeds);
