@@ -515,7 +515,7 @@ exports.secondSync = function(req, res, next) {
 	if(st == "profile") {
 		if(typeof listarr == "object") {
 			db.collection('jobs', function(err, collection) {
-				collection.update( { '_id': { $in: listarr } }, { $set: { 'display.description.about': sync_data.profile.about, 'location': locationob, 'display.picture': sync_data.profile.files.profile_pic } }, { multi: true }, function(err, result) {
+				collection.update( { '_id': { $in: listarr } }, { $set: { 'display.description.about': sync_data.profile.about, 'location': locationob, 'display.picture': sync_data.profile.files.profile_pic, 'name.company': sync_data.name.company } }, { multi: true }, function(err, result) {
 					if(err) {
 						res.send({
 							'sync_status': 'error',
@@ -537,7 +537,7 @@ exports.thirdSync = function(req, res, next) {
 	var sync_data = req.body.sync_data;
 	if(st == "profile") {
 		db.collection('employers', function(err, collection) {
-			collection.update( { 'employer_id': new BSON.ObjectID(sync_data._id) }, { $set: { 'address': sync_data.address, 'profile.phone': sync_data.phone, 'profile.phone_formatted': sync_data.phone_formatted, 'profile.about': sync_data.profile.about, 'profile.tags': sync_data.profile.tags, 'profile.files': sync_data.profile.files } }, function(err, result) {
+			collection.update( { 'employer_id': new BSON.ObjectID(sync_data._id) }, { $set: { 'address': sync_data.address, 'profile.phone': sync_data.phone, 'profile.phone_formatted': sync_data.phone_formatted, 'profile.about': sync_data.profile.about, 'profile.tags': sync_data.profile.tags, 'profile.files': sync_data.profile.files, name: sync_data.name } }, function(err, result) {
 				if(err) {
 					res.send({
 						'sync_status': 'error',
