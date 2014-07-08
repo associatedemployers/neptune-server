@@ -119,6 +119,7 @@ api.get('/employer/account/applicant-labels/save', auth.jwtcheck, tokenauth.get.
 api.post('/employer/sync', auth.jwtcheck, tokenauth.post.employer, auth.isEmployer, employers.geocode, employers.firstSync, employers.secondSync, employers.thirdSync, employers.syncOK);
 api.get('/employer/ie/sync', transformreq, auth.jwtcheck, auth.isEmployer, tokenauth.post.employer, employers.geocode, employers.firstSync, employers.secondSync, employers.thirdSync, employers.syncOK);
 api.get('/employer/account/listings', auth.jwtcheck, tokenauth.get.employer, auth.isEmployer, employers.fetchListings);
+api.get('/employer/account/listings/:id/set-status', auth.jwtcheck, tokenauth.get.employer, auth.isEmployer, employers.setListingStatus);
 api.get('/employer/account/orders', auth.jwtcheck, tokenauth.get.employer, auth.isEmployer, employers.fetchOrders);
 api.get('/employer/account/saved-cards', auth.jwtcheck, tokenauth.get.employer, auth.isEmployer, employers.fetchCards);
 api.get('/employer/account/saved-cards/delete', auth.jwtcheck, tokenauth.get.employer, auth.isEmployer, employers.deleteCard);

@@ -564,7 +564,7 @@ exports.fetchListings = function(req, res, next) {
 		return;
 	}
 	db.collection('jobs', function(err, collection) {
-		collection.find( { 'employer_id': employer_id, 'active': true } ).sort( { time_stamp: -1 } ).toArray(function(err, results) {
+		collection.find( { 'employer_id': employer_id, remove_on: { $exists: false } } ).sort( { time_stamp: -1 } ).toArray(function(err, results) {
 			if(err) {
 				res.send([]);
 			} else {
@@ -839,4 +839,38 @@ exports.resendVerification = function (req, res, next) {
 			});
 		});
 	});
+}
+
+exports.setListingStatus = function (req, res, next) {
+	// Parse type
+	req.query.listing_status = (req.query.listing_status == "true") ? true : false;
+	var inactiveReason = (req.query.listing_status) ? null : "Set inactive via employer in account.";
+	// Parse the ObjectIDs so that we can use a simple indexOf
+	if(req.account && req.account.listings) {
+		req.account.listings_mapped = req.account.listings.map(function (id) {
+			return id.toString();
+		});
+	}
+	// Check to make sure employer that is logged with JWT has this listing
+	if(req.account && req.account.listings && req.account.listings_mapped.indexOf(req.params.id) > -1) {
+		db.collection('jobs', function (err, listings) {
+			listings.findAndModify({ '_id': new BSON.ObjectID(req.params.id) }, [], { $set: { active: req.query.listing_status, inactive_reason: inactiveReason } }, { remove: false, new: true }, function(err, result) {
+				if(err) {
+					res.json({
+						status: 'in error',
+						error: 'Mongo err: ' + err
+					});
+				} else {
+					res.json({
+						status: 'ok'
+					});
+				}
+			});
+		});
+	} else {
+		res.json({
+			status: 'in error',
+			error: 'Not Authorized'
+		});
+	}
 }
