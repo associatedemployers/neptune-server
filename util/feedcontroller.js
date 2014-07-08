@@ -33,27 +33,23 @@ var feedTask = new cronJob('* * * * *', function(){
 
 var feedsController = {
 	fetch: function () {
-		console.log('fetching feeds');
 		db.collection('feeds', function (err, collection) {
 			collection.find({'system_options.update.auto': "true"}).sort({ 'time_stamp': -1 }).toArray(function (err, feeds) {
 				if(err) {
 					throw new Error(err);
 				} else {
-					console.log('found ' + feeds.length + ' feeds...');
 					var t = moment(),
 						feedList = [];
-					console.log('building feed list**');
 					feeds.forEach(function(feed) {
 						if(feed.remove) return feedList.push(feed);
 						if(feed.last_import) { //CHANGE TO LAST IMPORT
-							console.log('**has last updated');
 							if(moment(feed.last_import, "YYYY/MM/DD HH:mm:ss").isAfter(moment(t).subtract("d", feed.system_options.update.frequency))) return console.log('**has been updated');
 						}
-						console.log('**pushing feed into list');
 						feedList.push(feed);
 					});
-					console.log('exited list build');
-					if(feedList.length > 0) {console.log('calling init');feedsController.init(feedList)};
+					if(feedList.length > 0) {
+						feedsController.init(feedList);
+					}
 				}
 			});
 		});
@@ -61,7 +57,6 @@ var feedsController = {
 	init: function (feeds) {
 		console.log("Importing " + feeds.length + " feed(s)...");
 		feeds.forEach(function(feed) {
-			console.log('cleaning db');
 			feedsController.cleandb(feed);
 		});
 	},
@@ -76,7 +71,6 @@ var feedsController = {
 		}
 		var bson_ids = [];
 		feed.associated_ids.forEach(function(id) {
-			console.log(id);
 			bson_ids.push(new BSON.ObjectID(id.toString()));
 		});
 		db.collection('jobs', function (err, collection) {
@@ -84,10 +78,7 @@ var feedsController = {
 				if(err) {
 					throw new Error(err);
 				} else {
-					console.log('cleaned db');
-					console.log('feed.remove:', feed.remove);
 					if(feed.remove) {
-						console.log('remove feed');
 						feedsController.removeFeed(feed);
 					} else {
 						feedsController.callapi(feed);
@@ -97,21 +88,16 @@ var feedsController = {
 		});
 	},
 	buildurl: function (feed) {
-		console.log('building url');
 		var url;
 		if(feed.api == "indeed") {
 			url = "http://api.indeed.com/ads/apisearch?publisher=1194789839977044&format=json&v=2&highlight=0&useragent=JupiterAPI&sort=date&latlong=1&fromage=30&co=us&l=" + feed.api_options.city + "%2C+" + feed.api_options.state + "&radius=" + feed.api_options.radius + "&limit=" + feed.api_options.limit;
 			if(feed.api_options.query) url += "&q=" + feed.api_options.query;
 			if(feed.api_options.job_type) url += "&jt=" + feed.api_options.job_type;
 		}
-		console.log(url);
-		console.log('returning url');
 		return url;
 	},
 	callapi: function (feed) {
-		console.log('calling api method');
 		var url = feedsController.buildurl(feed);
-		console.log('requesting');
 		var request = http.get(url, function (response) {
 			var buffer = "", data;
 			response.on("data", function (chunk) {
@@ -119,10 +105,8 @@ var feedsController = {
 			});
 			response.on("end", function (err) {
 				data = JSON.parse(buffer);
-				console.log('parsed buffer');
 				if(!data.results) throw new Error("no results, got buffer: " + buffer);
 				if(parseFloat(feed.api_options.limit) > 25 && data.totalResults > 25) {
-					console.log('limit is less than 25, and results are greater and 25');
 					return feedsController.getAdditionalPages(data, feed, url);
 				}
 				feedsController.checkDuplicates(data, feed, url);
@@ -132,12 +116,9 @@ var feedsController = {
 		});
 	},
 	getAdditionalPages: function (data, feed, url) {
-		console.log('getting the extra pages');
 		var page = 1, request, endpoints = [],
 			toGet = (parseFloat(feed.api_options.limit) < data.totalResults) ? Math.ceil(parseFloat(feed.api_options.limit - 25) / 25) : Math.ceil((data.totalResults - 25) / 25);
-			console.log(toGet, page);
 		for (var i = 0; i < toGet; i++) {
-			console.log('pushed endpoint');
 			endpoints.push(url + "&start=" + (page * 25));
 			page++;
 		}
@@ -153,7 +134,6 @@ var feedsController = {
 					if(!ndata.results) throw new Error("no results, got buffer: " + buffer);
 					data.results = data.results.concat(ndata.results);
 					requestsFulfilled++;
-					console.log(requestsFulfilled, "/", requestsToFulfill);
 					if(requestsFulfilled == requestsToFulfill) feedsController.checkDuplicates(data, feed, url);
 				});
 			}).on('error', function(e) {
@@ -165,11 +145,11 @@ var feedsController = {
 		if(data.results.length > parseFloat(feed.api_options.limit)) {
 			data.results = data.results.slice(0, parseFloat(feed.api_options.limit) - 1);
 		}
-		console.log('checking for duplicates');
 		var keys = [];
-		console.log('building keys**');
 		data.results.forEach(function(result) {
-			if(result.jobkey) {keys.push(result.jobkey); console.log('**pushed key');};
+			if(result.jobkey) {
+				keys.push(result.jobkey);
+			}
 		});
 		db.collection('jobs', function (err, collection) {
 			collection.find({ 'feed_key': { $in: keys } }).sort({'time_stamp': -1 }).toArray(function (err, duplicates){
@@ -177,7 +157,6 @@ var feedsController = {
 					throw new Error(err);
 				} else {
 					if(duplicates.length > 0) {
-						console.log('dupes found');
 						var count = 0;
 						data.results = data.results.filter(function(result) {
 							var notDupe = true;
@@ -190,8 +169,6 @@ var feedsController = {
 							return notDupe;
 						});
 						if(count > 0) feed.duplicates = count;
-					} else {
-						console.log('no dupes found');
 					}
 					feedsController.mapData(data, feed);
 				}
@@ -199,11 +176,8 @@ var feedsController = {
 		});
 	},
 	mapData: function (data, feed) {
-		console.log('mapping data**');
 		if(feed.api == "indeed") {
-			console.log('**init indeed api');
 			var newResults = [];
-			console.log('building listings**XX');
 			data.results.forEach(function(result) {
 				if(result.source == "Job Jupiter" || result.expired) return;
 				var date = result.date.split(' ');
@@ -240,9 +214,7 @@ var feedsController = {
 					active: true
 				};
 				newResults.push(listing);
-				console.log('**XXPushed Listing');
 			});
-			console.log('**exited data map');
 			feedsController.injectResults(newResults, feed);
 		} else {
 			throw new Error("Feed not supported! API: " + feed.api);
@@ -250,17 +222,14 @@ var feedsController = {
 	},
 	injectResults: function (data, feed) {
 		if(data.length < 1) {
-			console.log('no data to inject');
 			return feedsController.touchFeed([], feed);
 		}
-		console.log('injecting results');
 		db.collection('jobs', function (err, collection) {
 			collection.insert(data, function(err, injected) {
 				if(err) {
-					console.log(err);
+					console.error(err);
 					throw new Error(err.message);
 				} else {
-					console.log('injected feeds');
 					var associatedids = [];
 					injected.forEach(function(doc) {
 						associatedids.push(doc._id.toString());
@@ -271,13 +240,11 @@ var feedsController = {
 		});
 	},
 	touchFeed: function (ids, feed) {
-		console.log('touching feed');
 		db.collection('feeds', function (err, collection) {
 			collection.update({ '_id': new BSON.ObjectID(feed._id.toString()) }, { $set: { 'associated_ids': ids, 'last_import': moment().format("YYYY/MM/DD HH:mm:ss") }, $unset: { 'duplicates': '' } }, function (err, result) {
 				if(err) {
 					throw new Error(err);
 				} else {
-					console.log("Updated " + feed.name + " feed.");
 					if(feed.duplicates) {
 						collection.update({ '_id': new BSON.ObjectID(feed._id.toString()) }, { $set: { 'duplicates': feed.duplicates } }, function (err, result) {
 							if(err) {
@@ -292,13 +259,10 @@ var feedsController = {
 		});
 	},
 	removeFeed: function (feed) {
-		console.log('removing feed');
 		db.collection('feeds', function (err, collection) {
 			collection.remove({ '_id': new BSON.ObjectID(feed._id.toString()) }, function (err, result) {
 				if(err) {
 					throw new Error(err);
-				} else {
-					console.log("removed feed.");
 				}
 			});
 		});
