@@ -80,9 +80,9 @@ function pullMembers (callback) {
 }
 
 function flagAccounts (emails, callback) {
-	db.collection('employerusers', function(err, collection) {
-		collection.update({'ae_member': { $exists: true } }, { $unset: { 'ae_member': "" } }, { multi: true }, function(err, result) {
-			collection.update({'login.email': { $in: emails } }, { $set: { 'ae_member': true } }, { multi: true }, function(err, updated) {
+	db.collection('employerusers', function (err, collection) {
+		collection.update({'ae_member': { $exists: true } }, { $unset: { 'ae_member': "" } }, { multi: true }, function (err, result) {
+			collection.update({'login.email': { $in: emails } }, { $set: { 'ae_member': true } }, { multi: true }, function (err, updated) {
 				if(err) {
 					console.error(err);
 				} else {
@@ -96,8 +96,8 @@ function flagAccounts (emails, callback) {
 }
 
 function runJobCheck () {
-	db.collection('jobs', function(err, collection) {
-		collection.find({ 'active': true }).toArray(function(err, results) {
+	db.collection('jobs', function (err, collection) {
+		collection.find({ remove_on: { $exists: false } }).toArray(function (err, results) {
 			if(err) {
 				console.error(err);
 			} else {
@@ -114,7 +114,7 @@ function iterateJobs (jobs) {
 	jobs.forEach(function(job) {
 		count++;
 		if(!job.time_stamp) return;
-		var dst = job.time_stamp.split(' ').shift().split('/'); //So we take the time stamp, split it into two based on the space between date and time, remove the last from our selection, and then split it again based on the '/' separator inbetween the dates. YYYY/MM/DD
+		var dst = job.time_stamp.split(' ').shift().split('/'); // So we take the time stamp, split it into two based on the space between date and time, remove the last from our selection, and then split it again based on the '/' separator inbetween the dates. YYYY/MM/DD
 		var date = addDays(new Date(dst[0], (dst[1] - 1), dst[2]), 30).getTime();
 		var now = new Date().getTime();
 		if(date < now) {
@@ -134,12 +134,11 @@ function iterateJobs (jobs) {
 }
 
 function expireJob (id) {
-	db.collection('jobs', function(err, collection) {
-		collection.update({ '_id': id }, { $set: { 'active': false, 'inactive_reason': 'Set unactive via expiry bot', 'remove_on': moment().add("d", 30).format("YYYY/MM/DD HH:mm:ss") } }, function(err, num) {
+	db.collection('jobs', function (err, collection) {
+		collection.update({ '_id': id }, { $set: { 'active': false, 'inactive_reason': 'Set unactive via expiry bot', 'remove_on': moment().add("d", 30).format("YYYY/MM/DD HH:mm:ss") } }, function (err, num) {
 			if(err) {
 				console.error(err);
 			} else if(num) {
-				console.log('expired listing');
 				numExpired++;
 				analytics.logJobExpiration();
 			} else if(!num) {
@@ -276,11 +275,9 @@ function finishUpAlerts (alerts) {
 }
 
 function fetchOrders () {
-	console.log("fetching orders");
 	db.collection('orders', function (err, collection) {
 		collection.find().toArray(function (err, results) {
 			if(err) console.error(err);
-			console.log('sending to iterator');
 			iterateOrders(results);
 		});
 	});
@@ -298,23 +295,19 @@ function iterateOrders (orders) {
 }
 
 function archiveOrder (order) {
-	console.log("Archiving");
 	db.collection('orders_archived', function (err, collection) {
 		collection.insert(order, function (err, result) {
 			if(err) console.error(err);
-			console.log("Send to Delete");
 			deleteOrder(order._id.toString());
 		});
 	});
 }
 
 function deleteOrder (id) {
-	console.log("Deleting");
 	if(!id) console.error("Expected id, got " + id);
 	db.collection('orders', function (err, collection) {
 		collection.remove({'_id': new BSON.ObjectID(id)}, function (err, result) {
 			if(err) console.error(err);
-			console.log("Deleted");
 		});
 	});
 }
@@ -323,17 +316,29 @@ function fetchEmployers () {
 	db.collection('employerusers', function (err, collection) {
 		collection.find().toArray(function (err, results) {
 			if(err) console.error(err);
+			iterateEmployers(results, true);
+		});
+	});
+	db.collection('employers', function (err, collection) {
+		collection.find().toArray(function (err, results) {
+			if(err) console.error(err);
 			iterateEmployers(results);
 		});
 	});
 }
 
-function iterateEmployers (employers) {
+function iterateEmployers (employers, users) {
 	var currentTime = moment();
 	employers.forEach(function (employer) {
 		if(employer.featured && currentTime.isAfter(moment(employer.featured_expiration, "YYYY/MM/DD HH:mm:ss"))) {
-			defeatureEmployer(employer._id);
-			notifications.defeaturedEmployer(employer);
+			
+			if(users) {
+				defeatureEmployerListing(employer._id);
+				notifications.defeaturedEmployer(employer);
+			} else {
+				defeatureEmployer(employer._id);
+			}
+
 		}
 	});
 }
@@ -349,7 +354,7 @@ function defeatureEmployer (id) {
 
 function defeatureEmployerListing (id) {
 	db.collection('employers', function (err, collection) {
-		collection.update({ 'employer_id': id.toString() }, { $set: { 'featured': false, 'featured_expiration': null } }, function (err, result) {
+		collection.update({ '_id': new BSON.ObjectID(id.toString()) }, { $set: { 'featured': false, 'featured_expiration': null } }, function (err, result) {
 			if(err) console.error(err);
 		});
 	});
