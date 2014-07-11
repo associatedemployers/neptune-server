@@ -74,9 +74,20 @@ function pullMembers (callback) {
 		}); 
 		
 		response.on("end", function (err) {
-			flagAccounts(JSON.parse(buffer), callback);
+			// Pass the buffer, after being parsed, to the flagger
+			flagAccounts(
+				parseArray(JSON.parse(buffer)),
+				callback
+			);
 		});
 	});
+	var parseArray = function (arr) {
+		// Needed to remove inconsistencies
+		return arr.map(function (item) {
+			// Fix each string to lowercase and trim any whitespace
+			return (item) ? item.toLowerCase().trim() : item;
+		});
+	}
 }
 
 function flagAccounts (emails, callback) {
