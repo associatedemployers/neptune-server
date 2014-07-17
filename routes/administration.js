@@ -462,7 +462,7 @@ exports.fetchListings = function (req, res, next) {
 exports.setListingStatus = function (req, res, next) {
 	var perms = req.query.perms;
 	var id = req.query.id;
-	var active = req.query.active;
+	var active = (req.query.active == "true") ? true : false;
 	var inactiveReason = (!active) ? req.query.reason : null;
 	if(!perms || !id || !req.query.email || !req.query.title) {
 		res.json({
