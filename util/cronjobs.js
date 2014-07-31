@@ -160,9 +160,9 @@ function expireJob (id) {
 }
 
 function pullListing (empid, id) {
-	db.collection('jobs', function(err, collection) {
+	db.collection('employerusers', function(err, collection) {
 		collection.update({ '_id': new BSON.ObjectID(empid) }, { $pull: { 'listings': id } }, function(err, num) {
-			if(err) console.error(err);;
+			if(err) console.error(err);
 		});
 	});
 }
