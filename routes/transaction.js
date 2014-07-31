@@ -110,7 +110,7 @@ exports.process = function(req, res, next) {
 				req.transactionResult = result;
 				var template;
 				if(order.type == "listing") {
-					template = mailtemplate.newListing(order.billing.name, result.transaction.id, order.total);
+					template = mailtemplate.newListing(order.billing.name, result.transaction.id, order.total, order.listing_name);
 				} else if(order.type == "resumes") {
 					template = mailtemplate.resumeAccess(order.billing.name, result.transaction.id, order.total);
 				} else if(order.type == "featured_account") {
@@ -122,7 +122,7 @@ exports.process = function(req, res, next) {
 				transport.sendMail({
 					from: "Job Jupiter <no-reply@jobjupiter.com>",
 					to: order.email,
-					subject: "Thanks for your order, " + order.billing.name.company || "valued customer!",
+					subject: "Thanks for your order, " + order.billing.name.company,
 					text: template.plain,
 					html: template.html
 				}, function(error, response){
