@@ -37,7 +37,7 @@ var express = require('express'),
 
 	mailtemplates = require('./config/mail.templates'),
 	
-	auth = require('./config/authorization-router')
+	auth = require('./config/authorization-router'),
 	tokenauth = require('./config/authorization-token-router'),
 	integrations = require('./routes/external-integrations');
 	/* END Route Vars */
@@ -209,13 +209,13 @@ exports.starthttps = function (port) {
 		console.log('Jupiter Secure API Listening on Port', port, '...');
 		integrations.slack.api.status("has started HTTPS server on port " + port + ".");
 	});
-}
+};
 
 exports.starthttp = function (port) {
 	return http.createServer(api).listen(port, function () {
 		console.log('Jupiter API Listening on Port', port, '...');
 		integrations.slack.api.status("has started HTTP server on port " + port + ".");
 	});
-}
+};
 
 exports.app = api;
