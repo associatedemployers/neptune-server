@@ -2,6 +2,7 @@
 
 var moment     = require('moment'),
     nodemailer = require('nodemailer'),
+    os         = require('os'),
     _          = require('lodash');
 
 module.exports = PerformanceMonitor;
