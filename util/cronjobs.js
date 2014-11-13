@@ -218,7 +218,7 @@ function iterateAlerts (alerts) {
 			query = req.query.search_query.replace(",", " "),
 			sarray = query.split(" "); //split the keywords
 			sarray = sarray.filter(function(qs) {
-				return qs.length > 2
+				return qs.length > 2;
 			});
 		db.collection('jobs', function(err, collection) { //connect to jobs collection
 			collection.find({ active: true, developer: { $exists: false } }).sort( { time_stamp: -1 } ).toArray(function(err, items) { //press all jobs into an array

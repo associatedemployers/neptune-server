@@ -691,6 +691,43 @@ exports.deleteEmployerAccount = function (req, res, next) {
 	});
 }
 
+exports.updateEmployer = function ( req, res, next ) {
+	var id      = req.params.id,
+			payload = req.query.payload;
+
+	if( !id || !payload ) {
+		return res.json({
+			status: 'in error',
+			error:  'Missing information from request.'
+		});
+	}
+
+	for ( var key in payload ) {
+		var p = payload[ key ];
+
+		if( p === 'false' || p === 'true' ) {
+			payload[ key ] = ( p === 'true' ) ? true : false;
+		}
+	}
+
+	db.collection('employers', function ( err, collection ) {
+		collection.update({ _id: new BSON.ObjectID( id ) }, { $set: payload }, function ( err, doc ) {
+			if( err ) {
+				console.log( err );
+
+				return res.json({
+					status: 'in error',
+					error:  'Mongo err: ' + err
+				});
+			}
+
+			res.send({
+				status: 'ok'
+			});
+		});
+	});
+};
+
 exports.fetchUsers = function (req, res, next) {
 	var perms = req.query.perms;
 	if(!perms) {

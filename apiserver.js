@@ -67,7 +67,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXX */
 api.get('/fetch-page-content', tokenauth.get.guest, users.fetchPageContent);// Test Covered
 api.get('/maintenance-mode', tokenauth.get.guest, administration.getMaintenanceStatus);// Test Covered
 
-api.get('/send-message', tokenauth.get.guest, notifications.fetchAdminEmail, notifications.sendContactMessage);
+//api.get('/send-message', tokenauth.get.guest, notifications.fetchAdminEmail, notifications.sendContactMessage);
 
 //jobs
 api.get('/jobs', tokenauth.get.guest, jobs.fetchAll);// Test Covered
@@ -166,6 +166,7 @@ api.get('/admin/delete-user', tokenauth.get.admin, administration.deleteUserAcco
 api.get('/admin/update-content', tokenauth.get.admin, administration.updateContent);// Test Covered
 api.get('/admin/add-image-to-rotation', tokenauth.get.admin, administration.addImageToRotation);
 api.get('/admin/remove-image-from-rotation', tokenauth.get.admin, administration.removeImageFromRotation);
+api.get('/admin/employer/:id/update', tokenauth.get.admin, administration.updateEmployer);
 
 api.get('/admin/compare-feed', tokenauth.get.admin, compare.process, compare.generate);
 

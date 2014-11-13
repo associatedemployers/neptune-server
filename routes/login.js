@@ -10,7 +10,7 @@ var mongo = require('mongodb'),
 
 var exception = {
 	'1001': "API ERROR 1001: Failed To Open DB."
-}
+};
 
 var Server = mongo.Server,
     Db = mongo.Db,
@@ -28,6 +28,10 @@ db.open(function(err, db) {
 });
 
 exports.checkemp = function(req, res, next) {
+	if( !req.body.email || !req.body.password ) {
+		return res.status(200).json("User not found.");
+	}
+
 	db.collection('employerusers', function(err, collection) {
 		collection.findOne({ 'login.email': req.body.email.toLowerCase() }, function(err, result) {
 			if (err) {
@@ -36,7 +40,7 @@ exports.checkemp = function(req, res, next) {
 				return;
 			}
 			if(result && bcrypt.compareSync(atob(req.body.password), result.login.password)) {
-				result['type'] = "employer";
+				result.type = "employer";
 				result.login.password = req.body.password;
 				result.userToken = generateJWT(atob(req.body.password), result.login.email, token.employer);
 				res.status(200).json(result); //sending back the result to the app with all user information.
@@ -44,8 +48,8 @@ exports.checkemp = function(req, res, next) {
 				next();
 			}
 		});
-    });
-}
+   });
+};
 
 exports.checkusr = function(req, res) {
 	db.collection('users', function(err, collection) {
@@ -56,7 +60,7 @@ exports.checkusr = function(req, res) {
 				return;
 			}
 			if(result && bcrypt.compareSync(atob(req.body.password), result.login.password)) {
-				result['type'] = "user";
+				result.type = "user";
 				result.login.password = req.body.password;
 				result.userToken = generateJWT(atob(req.body.password), result.login.email, token.user);
 				res.status(200).json(result); //sending back the result to the app with all user information.
@@ -65,7 +69,7 @@ exports.checkusr = function(req, res) {
 			}
 		});
 	});
-}
+};
 
 function generateJWT (pw, em, tk) {
 	return jwt.encode({
