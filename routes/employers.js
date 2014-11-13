@@ -40,7 +40,7 @@ db.open(function(err, db) {
 exports.fetchFeatured = function(req, res) {
 	db.collection('employers', function(err, collection) {
 		collection.find({ featured: true, developer: { $exists: false } }).sort( { time_stamp: -1 } ).toArray(function(err, items) {
-            if(req.query.callback !== null) {
+      if(req.query.callback !== null) {
 				res.jsonp(items);
 			} else {
 				res.json(items);
@@ -68,7 +68,7 @@ exports.fetchRandomFeatured = function(req, res) {
 			var a = items.slice(rand.start, rand.end);
 			res.json(a);
 		});
-    });
+  });
 }
 
 exports.fetchAll = function(req, res) {
@@ -563,7 +563,10 @@ exports.fetchListings = function(req, res, next) {
 		res.send([]);
 		return;
 	}
-	db.collection('jobs', function(err, collection) {
+
+	var collectionName = ( req.query.expired === true ) ? 'expired_jobs' : 'jobs';
+
+	db.collection(collectionName, function(err, collection) {
 		collection.find( { 'employer_id': employer_id, remove_on: { $exists: false } } ).sort( { time_stamp: -1 } ).toArray(function(err, results) {
 			if(err) {
 				res.send([]);
