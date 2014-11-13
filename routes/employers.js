@@ -564,7 +564,7 @@ exports.fetchListings = function(req, res, next) {
 		return;
 	}
 
-	var collectionName = ( req.query.expired === true ) ? 'expired_jobs' : 'jobs';
+	var collectionName = ( req.query.expired === true || req.query.expired === 'true' ) ? 'expired_jobs' : 'jobs';
 
 	db.collection(collectionName, function(err, collection) {
 		collection.find( { 'employer_id': employer_id, remove_on: { $exists: false } } ).sort( { time_stamp: -1 } ).toArray(function(err, results) {
