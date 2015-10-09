@@ -88,8 +88,8 @@ exports.categoryCount = function (req, res) {
 			}
 			res.send(response);
 		});
-	})
-}
+	});
+};
 
 exports.fetchAll = function(req, res) {
 	var filters = {
@@ -99,23 +99,31 @@ exports.fetchAll = function(req, res) {
 		qFilters = req.query.filters,
 		limit = parseFloat(req.query.limit) || 100,
 		page = parseFloat(req.query.page) || 1,
-		sort = req.query.sort;
-	for (var k in sort) {
-		sort[k] = parseFloat(sort[k]);
+		qSort = req.query.sort || {};
+	var sort = {
+		fed_from: 1
+	};
+
+	for (var k in qSort) {
+		if ( !sort.hasOwnProperty(k) ) {
+			sort[k] = parseFloat(qSort[k]);
+		}
 	}
+
 	if(qFilters) {
 		for (var key in qFilters) {
 			if(!filters.hasOwnProperty(key)) {// if we are not on a default
 				if(qFilters[key] == 'NOT_SET') {
 					filters[key] = {
 						$exists: false
-					}
+					};
 				} else {
 					filters[key] = qFilters[key];// overwrite it
 				}
 			}
 		}
 	}
+
 	db.collection('jobs', function (err, collection) {
 		collection.find(filters, {
 				fields: {
@@ -128,7 +136,7 @@ exports.fetchAll = function(req, res) {
 		).sort(sort).skip((page - 1) * limit).limit(limit).toArray(function (err, items) {
 			if(err) console.error(err);
 			if(req.query.location) {
-				var loc = req.query.location;
+				var loc = req.query.location,
 					results = [],
 					manifest = {
 						latitude: loc.lat,
@@ -139,7 +147,7 @@ exports.fetchAll = function(req, res) {
 					var item_geo = {
 						latitude: item.location.geo.lat,
 						longitude: item.location.geo.lng
-					}
+					};
 					if(haversine(manifest, item_geo, {'unit': 'mi'}) < loc.radius) { //distance less than search radius
 						results.push(item);	//push the item into the results array
 					}
@@ -150,7 +158,7 @@ exports.fetchAll = function(req, res) {
 			}
 		});
 	});
-}
+};
 
 exports.fetchByID = function(req, res) {
 	var id = req.params.id;

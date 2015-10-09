@@ -6,13 +6,13 @@ var mongo = require('mongodb'),
 	nodemailer = require('nodemailer'),
 	mailtemplate = require('.././config/mail.templates'),
 	token = require('.././config/tokens');
-	
+
 var exception = {
 	'1001': "API ERROR 1001: Failed To Open DB."
 }
 
 var gateway = braintree.connect({
-	environment: braintree.Environment.Production,
+	environment: process.env.developerMode ? braintree.Environment.Sandbox : braintree.Environment.Production,
 	merchantId: token.braintree.merchantId,
 	publicKey: token.braintree.publicKey,
 	privateKey: token.braintree.privateKey
@@ -46,7 +46,7 @@ exports.process = function(req, res, next) {
 			options: {
 				submitForSettlement: true
 			}
-		}
+		};
 	} else if(order.card.save && parseFloat(order.total) > 0) {
 		saleObject = {
 			amount: order.total,
@@ -59,7 +59,7 @@ exports.process = function(req, res, next) {
 				number: order.card.number,
 				cvv: order.card.cvv,
 				expirationMonth: order.card.expiration.month,
-				expirationYear: order.card.expiration.year	
+				expirationYear: order.card.expiration.year
 			},
 			billing: {
 				streetAddress: order.billing.address.line1,
@@ -71,7 +71,7 @@ exports.process = function(req, res, next) {
 				submitForSettlement: true,
 				storeInVaultOnSuccess: true
 			}
-		}
+		};
 	} else if(parseFloat(order.total) > 0) {
 		saleObject = {
 			amount: order.total,
@@ -95,8 +95,15 @@ exports.process = function(req, res, next) {
 			options: {
 				submitForSettlement: true
 			}
-		}
+		};
 	}
+
+	if ( saleObject ) {
+		saleObject.customFields = {
+			memberprovider: order.membershipFlag
+		};
+	}
+
 	if(parseFloat(order.total) > 0) {
 		gateway.transaction.sale(saleObject, function(err, result) {
 			if(err) {

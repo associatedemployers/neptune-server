@@ -14,8 +14,8 @@ var monitor = new PerformanceMonitor({
 
 integrations.slack.api.status("is going up.");
 
-server.starthttps(3000);
-server.starthttp(3001);
+server.starthttps(process.env.securePort || 3000);
+server.starthttp(process.env.unsecurePort || 3001);
 
 integrations.slack.api.status("is up.");
 

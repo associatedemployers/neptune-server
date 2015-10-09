@@ -6,6 +6,7 @@ var mongo = require('mongodb'),
 	cronJob = require('cron').CronJob,
 	analytics = require('./analytics'),
 	notifications = require('./notifications'),
+	Promise = require('bluebird'),
 	moment = require('moment');
 	
 var Server = mongo.Server,
@@ -14,6 +15,13 @@ var Server = mongo.Server,
 
 var timeToExecute,
 	numExpired = 0;
+
+var running = [];
+
+var memberApis = [
+	{ url: 'http://associatedemployers.org/fetchEmails.php?token=aejobs', flag: 'AE' },
+	{ url: 'http://www.employers.org/joju.php', flag: 'CEA' }
+];
 
 var server = new Server('localhost', 27017, {auto_reconnect: true});
 db = new Db('ae', server, {safe: true}, {strict: false});
@@ -42,13 +50,22 @@ var membercheck = new cronJob('* * * * *', function(){
 }, null, true);
 
 var jobcheck = new cronJob('* * * * *', function(){
+	if ( running[0] || process.env.developerMode ) {
+		return;
+	}
+
 	timeToExecute = new Date().getTime();
 	console.log("running job check");
+	running[0] = true;
 	runJobCheck();
 }, null, true);
 
 var alertTask = new cronJob('* * * * *', function(){
+	if ( running[1] || process.env.developerMode ) {
+		return;
+	}
 	console.log('running alert task');
+	running[1] = true;
 	fetchAlerts();
 }, null, true);
 
@@ -66,41 +83,50 @@ membercheck.start();
 jobcheck.start();
 
 function pullMembers (callback) {
-	http.get('http://associatedemployers.org/fetchEmails.php?token=aejobs', function (response) { 
-		var buffer = "";
-		
-		response.on("data", function (chunk) {
-			buffer += chunk;
-		}); 
-		
-		response.on("end", function (err) {
-			// Pass the buffer, after being parsed, to the flagger
-			flagAccounts(
-				parseArray(JSON.parse(buffer)),
-				callback
-			);
-		});
-	});
 	var parseArray = function (arr) {
 		// Needed to remove inconsistencies
 		return arr.map(function (item) {
 			// Fix each string to lowercase and trim any whitespace
 			return (item) ? item.toLowerCase().trim() : item;
 		});
-	}
+	};
+
+	Promise.reduce(memberApis, function ( ret, memberProvider ) {
+		return new Promise(function ( resolve, reject ) {
+			console.log('Getting', memberProvider.flag, 'Memberships...');
+			http.get(memberProvider.url, function (response) {
+				var buffer = '';
+
+				response.on('data', function (chunk) {
+					buffer += chunk;
+				}); 
+
+				response.on('end', function (err) {
+					// Pass the buffer, after being parsed, to the flagger
+					flagAccounts(parseArray(JSON.parse(buffer)), memberProvider.flag, resolve);
+				});
+			});
+		}).then(function ( result ) {
+			ret.push(result);
+			return ret;
+		})
+	}, []).then(callback).catch(function ( err ) {
+		console.error('Error retrieving members.');
+		console.error(err);
+	});
 }
 
-function flagAccounts (emails, callback) {
+function flagAccounts (emails, membershipFlag, callback) {
 	db.collection('employerusers', function (err, collection) {
-		collection.update({'ae_member': { $exists: true } }, { $unset: { 'ae_member': "" } }, { multi: true }, function (err, result) {
-			collection.update({'login.email': { $in: emails } }, { $set: { 'ae_member': true } }, { multi: true }, function (err, updated) {
-				if(err) {
+		collection.update({'ae_member': { $exists: true }, 'membershipFlag': membershipFlag }, { $unset: { 'ae_member': "" } }, { multi: true }, function (err, result) {
+			collection.update({'login.email': { $in: emails } }, { $set: { 'ae_member': true, 'membershipFlag': membershipFlag } }, { multi: true }, function (err, updated) {
+				if (err) {
 					console.error(err);
 				} else {
 					timeToExecute = (new Date().getTime() - timeToExecute) / 1000;
-					console.log("Current AE Members: " + updated + " | Operation took " + timeToExecute + "sec");
+					console.log("Current", membershipFlag, "Members:", updated);
 				}
-				if(callback) callback();
+				if (callback) callback();
 			});
 		});
 	});
@@ -111,6 +137,7 @@ function runJobCheck () {
 		collection.find({ remove_on: { $exists: false } }).toArray(function (err, results) {
 			if(err) {
 				console.error(err);
+				running[0] = false;
 			} else {
 				iterateJobs(results);
 			}
@@ -124,7 +151,7 @@ function iterateJobs (jobs) {
 	var count = 0;
 	jobs.forEach(function(job) {
 		count++;
-		if(!job.time_stamp) return;
+		if(!job.time_stamp) return running[0] = false;
 		var dst = job.time_stamp.split(' ').shift().split('/'); // So we take the time stamp, split it into two based on the space between date and time, remove the last from our selection, and then split it again based on the '/' separator inbetween the dates. YYYY/MM/DD
 		var date = addDays(new Date(dst[0], (dst[1] - 1), dst[2]), 30).getTime();
 		var now = new Date().getTime();
@@ -135,7 +162,7 @@ function iterateJobs (jobs) {
 				notifications.listingExpired(job.display.title, job.name.company, job.notification_email, job._id);
 				db.collection('expired_jobs', function (err, collection) {
 					collection.insert(job, function (err, result) {
-						if(err) console.error(err);
+						if (err) console.error(err);
 					});
 				});
 			}
@@ -169,6 +196,7 @@ function pullListing (empid, id) {
 
 function finishUpExpiration () { 
 	console.log('jobchecker complete');
+	running[0] = false;
 }
 
 function addDays(date, days) {
@@ -186,7 +214,10 @@ function fetchAlerts () {
 }
 
 function buildUpdateList (alerts) {
-	if(!alerts) return console.log("No alerts to process");
+	if(!alerts) {
+		running[1] = false;
+		return console.log("No alerts to process");
+	}
 	var t = moment(),
 		toUpdate = [];
 	
@@ -209,7 +240,10 @@ function iterateAlerts (alerts) {
 	var alertCount = alerts.length,
 		count = 0;
 	console.log('found ' + alerts.length + ' alerts');
-	if(!alerts) return console.log("No alerts to process");
+	if(!alerts) {
+		running[1] = false;
+		return console.log("No alerts to process");
+	}
 	alerts.forEach(function (a) {
 		count++;
 		var freq = parseFloat(a.frequency.value);
@@ -259,7 +293,10 @@ function iterateAlerts (alerts) {
 }
 
 function sendAlerts (alerts) {
-	if(!alerts) return console.log("No alerts to process");
+	if(!alerts) {
+		running[1] = false;
+		return console.log("No alerts to process");
+	}
 	alerts.forEach(function (a) {
 		notifications.sendJobAlert(a);
 		updateJBA(a);
@@ -282,6 +319,7 @@ function updateJBA (a) {
 }
 
 function finishUpAlerts (alerts) {
+	running[1] = false;
 	console.log("Completed processing on " + alerts.length + " alerts");
 }
 
