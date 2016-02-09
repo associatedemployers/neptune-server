@@ -8,7 +8,7 @@ var mongo = require('mongodb'),
 	notifications = require('./notifications'),
 	Promise = require('bluebird'),
 	moment = require('moment');
-	
+
 var Server = mongo.Server,
     Db = mongo.Db,
     BSON = mongo.BSONPure;
@@ -99,13 +99,13 @@ function pullMembers (callback) {
 
 				response.on('data', function (chunk) {
 					buffer += chunk;
-				}); 
+				});
 
 				response.on('end', function (err) {
 					// Pass the buffer, after being parsed, to the flagger
 					flagAccounts(parseArray(JSON.parse(buffer)), memberProvider.flag, resolve);
 				});
-			});
+			}).on('error', reject);
 		}).then(function ( result ) {
 			ret.push(result);
 			return ret;
@@ -194,7 +194,7 @@ function pullListing (empid, id) {
 	});
 }
 
-function finishUpExpiration () { 
+function finishUpExpiration () {
 	console.log('jobchecker complete');
 	running[0] = false;
 }
@@ -220,7 +220,7 @@ function buildUpdateList (alerts) {
 	}
 	var t = moment(),
 		toUpdate = [];
-	
+
 	alerts.forEach(function (a) {
 		if(a.last_updated) {
 			var freq = parseFloat(a.frequency.value),
@@ -229,7 +229,7 @@ function buildUpdateList (alerts) {
 		}
 		toUpdate.push(a); //if we made it here, push it into the update list
 	});
-	
+
 	iterateAlerts(toUpdate);
 }
 
@@ -380,7 +380,7 @@ function iterateEmployers (employers, users) {
 	var currentTime = moment();
 	employers.forEach(function (employer) {
 		if(employer.featured && currentTime.isAfter(moment(employer.featured_expiration, "YYYY/MM/DD HH:mm:ss"))) {
-			
+
 			if(users) {
 				defeatureEmployerListing(employer._id);
 				notifications.defeaturedEmployer(employer);

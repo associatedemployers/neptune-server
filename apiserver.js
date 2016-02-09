@@ -17,7 +17,7 @@ var express = require('express'),
 	privateKey = fs.readFileSync('cert/key.pem').toString(),
 	certificate = fs.readFileSync('cert/certificate.pem').toString(),
 	chain = fs.readFileSync('cert/ca.pem').toString(),
-	
+
 	/* Route Vars */
 	api = express(),
 	users = require('./routes/users'),
@@ -36,7 +36,7 @@ var express = require('express'),
 	feedcontroller = require('./util/feedcontroller'),
 
 	mailtemplates = require('./config/mail.templates'),
-	
+
 	auth = require('./config/authorization-router'),
 	tokenauth = require('./config/authorization-token-router'),
 	integrations = require('./routes/external-integrations');
@@ -103,7 +103,7 @@ api.get('/fetchtags/employers', tokenauth.get.guest, employers.fetchAllTags);
 api.get('/employers', tokenauth.get.guest, employers.fetchAll);
 api.get('/employers/:id', tokenauth.get.guest, employers.fetchByID, employers.appendListings);
 api.post('/employers', tokenauth.post.guest, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing);
-api.get('/ie/employers', tokenauth.get.guest, transformreq, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing);//IE SUPPORT <10 
+api.get('/ie/employers', tokenauth.get.guest, transformreq, employers.addEmployer, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.geocode, employers.createEmployerAccount, employers.addEmployerListing);//IE SUPPORT <10
 api.get('/check-existing-email', tokenauth.get.guest, employers.checkExistingUserEmail, employers.checkExistingEmployerEmail, employers.checkComplete);
 api.get('/check-existing-employer-company', tokenauth.get.guest, employers.checkExistingCompany, employers.checkComplete);
 api.get('/validate-coupon', auth.jwtcheck, tokenauth.get.employer, transaction.validateCoupon);
@@ -133,7 +133,7 @@ api.get('/account/recovery/:recovery', tokenauth.get.guest, users.recoverPasswor
 
 //login server
 api.post('/login', tokenauth.post.guest, login.checkemp, login.checkusr);
-api.get('/ie/login', tokenauth.get.guest, transformreq, login.checkemp, login.checkusr);//IE SUPPORT <10 
+api.get('/ie/login', tokenauth.get.guest, transformreq, login.checkemp, login.checkusr);//IE SUPPORT <10
 
 //search server
 api.get('/search', tokenauth.get.guest, searchdb.process, searchdb.sendResults);

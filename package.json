@@ -6,7 +6,7 @@
   "dependencies": {
     "MD5": "1.2.x",
     "atob": "~1.1.0",
-    "bcrypt": "~0.7.8",
+    "bcrypt": "~0.8.5",
     "braintree": "1.12.x",
     "btoa": "~1.1.1",
     "cron": "1.0.x",
