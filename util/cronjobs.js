@@ -102,8 +102,12 @@ function pullMembers (callback) {
 				});
 
 				response.on('end', function (err) {
-					// Pass the buffer, after being parsed, to the flagger
-					flagAccounts(parseArray(JSON.parse(buffer)), memberProvider.flag, resolve);
+					try {
+						// Pass the buffer, after being parsed, to the flagger
+						flagAccounts(parseArray(JSON.parse(buffer)), memberProvider.flag, resolve);
+					} catch ( err ) {
+						reject(new Error(err));
+					}
 				});
 			}).on('error', reject);
 		}).then(function ( result ) {
