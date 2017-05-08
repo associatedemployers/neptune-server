@@ -20,7 +20,7 @@ var running = [];
 
 var memberApis = [
 	{ url: 'http://associatedemployers.org/fetchEmails.php?token=aejobs', flag: 'AE' },
-	{ url: 'http://www.employers.org/joju.php', flag: 'CEA' }
+	{ url: 'https://www.employers.org/index.php?src=membership&srctype=membership_jobjupiter&direct=y', flag: 'CEA' }
 ];
 
 var server = new Server('localhost', 27017, {auto_reconnect: true});
