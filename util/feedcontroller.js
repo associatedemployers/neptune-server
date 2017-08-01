@@ -43,7 +43,7 @@ var feedsController = {
 					feeds.forEach(function(feed) {
 						if(feed.remove) return feedList.push(feed);
 						if(feed.last_import) { //CHANGE TO LAST IMPORT
-							if(moment(feed.last_import, "YYYY/MM/DD HH:mm:ss").isAfter(moment(t).subtract("d", feed.system_options.update.frequency))) return console.log('**has been updated');
+							if(moment(feed.last_import, "YYYY/MM/DD HH:mm:ss").isAfter(moment(t).subtract("d", feed.system_options.update.frequency))) return;
 						}
 						feedList.push(feed);
 					});
@@ -112,7 +112,7 @@ var feedsController = {
 				feedsController.checkDuplicates(data, feed, url);
 			});
 		}).on('error', function(e) {
-			throw new Error(e.message);
+			console.log(e.message);
 		});
 	},
 	getAdditionalPages: function (data, feed, url) {
@@ -267,4 +267,4 @@ var feedsController = {
 			});
 		});
 	}
-} 
+}

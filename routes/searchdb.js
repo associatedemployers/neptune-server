@@ -12,7 +12,7 @@ var exception = {
 var Server = mongo.Server,
     Db = mongo.Db,
     BSON = mongo.BSONPure;
- 
+
 var server = new Server('localhost', 27017, {auto_reconnect: true});
 db = new Db('ae', server, {safe: true}, {strict: false});
 
@@ -28,7 +28,8 @@ exports.process = function(req, res, next) {
 	if(!req.query.search_query) { res.json("No Keywords."); return; }
 	var query = req.query.search_query.replace(new RegExp(",", "g"), " "), count = 0;
 	db.command({ text: 'jobs', search: query }, function(err, curs) {
-		var prefiltered = curs.results.filter(function(result) {
+		var _curs = curs || { results: [] };
+		var prefiltered = _curs.results.filter(function(result) {
 			count++;
 			return (result.obj.active && !result.obj.developer) ? count < 200 : false;
 		}), allocated = [];
@@ -127,7 +128,7 @@ exports.appendUser = function (req, res, next) {
 	});
 }
 
-exports.autocomplete = function(req, res, next) {	
+exports.autocomplete = function(req, res, next) {
 	db.collection('jobs', function(err, collection) {
 		collection.find().sort( { time_stamp: -1 } ).toArray(function(err, items) {
 			var title_results = [],

@@ -12,7 +12,7 @@ var exception = {
 var Server = mongo.Server,
     Db = mongo.Db,
     BSON = mongo.BSONPure;
- 
+
 var server = new Server('localhost', 27017, {auto_reconnect: true});
 db = new Db('ae', server, {safe: true}, {strict: false});
 
@@ -110,14 +110,14 @@ exports.mapIndeedFeed = function (req, res, next) {
 				date: { '#cdata': moment(job.time_stamp, "YYYY/MM/DD HH:mm:ss").format("ddd, DD MMM YYYY HH:mm:ss zz") },
 				referencenumber: { '#cdata': job._id.toString() },
 				url: { '#cdata': "http://www.jobjupiter.com/#!/job/" + job._id.toString() },
-				company: { '#cdata': job.name.company },
-				city: { '#cdata': job.location.city },
-				state: { '#cdata': job.location.state },
+				company: { '#cdata': job.name.company || '' },
+				city: { '#cdata': job.location.city || '' },
+				state: { '#cdata': job.location.state || '' },
 				country: { '#cdata': "US" },
 				description: { '#cdata': job.display.description.long.toString() },
 				salary: { '#cdata': (job.display.compensation.amount) ? "$" + job.display.compensation.amount + "/" + job.display.compensation.type : "" },
 				jobtype: { '#cdata': job.display.type.toLowerCase().replace('-', '') },
-				category: { '#cdata': job.display.category }
+				category: { '#cdata': job.display.category || '' }
 			}
 		};
 		xml_object.source.jobs.push(xml_job);
@@ -130,4 +130,4 @@ exports.buildFeed = function (req, res, next) {
 	var root = builder.create(req.preparse_xml, {version: '1.0', encoding: 'UTF-8', standalone: true, "last-updated": moment().format("YYYY/MM/DD HH:mm:ss")});
 	req.xml = root.end({ pretty: true, indent: '    ', newline: '\n' });
 	next();
-}
+};
