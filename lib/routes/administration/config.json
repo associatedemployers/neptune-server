@@ -1,5 +1,5 @@
 {
-  "prefix": "/admin",
+  "prefix": "admin",
   "auth": "adminuser",
   "routes": {
     "POST /login": "login",
@@ -9,7 +9,7 @@
     "/coupons": { "ops": "crud", "model": "Coupon" },
     "/content": { "ops": "ru", "model": "Content" },
     "/orders": { "ops": "r", "model": "Order" },
-    "/listings": { "ops": "ru", "model": "JobListing" },
+    "/jobs": { "ops": "ru", "model": "Job" },
     "/employers": { "ops": "rud", "model": "Employer" },
     "/seekers": { "ops": "rd", "model": "Seeker" },
     "/images": { "ops": "crud", "model": "Image" },
