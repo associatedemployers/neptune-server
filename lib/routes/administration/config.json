@@ -4,7 +4,6 @@
   "routes": {
     "POST /login": "login",
     "/admin-users": { "ops": "crud", "model": "AdminUser" },
-    "GET /analytics/:type": "getAnalytic",
     "/announcements": { "ops": "crud", "model": "Announcement" },
     "/coupons": { "ops": "crud", "model": "Coupon" },
     "/content": { "ops": "ru", "model": "Content" },
@@ -13,7 +12,6 @@
     "/employers": { "ops": "rud", "model": "Employer" },
     "/seekers": { "ops": "rd", "model": "Seeker" },
     "/images": { "ops": "crud", "model": "Image" },
-    "POST /activate": "activate",
     "/feeds": { "ops": "crud", "model": "Feed" }
   }
 }
